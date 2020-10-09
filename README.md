@@ -1,0 +1,2 @@
+# sambot
+A discord bot.
