@@ -16,8 +16,8 @@ async def on_ready():
 
 @bot.command()
 async def test(context):
-	await context.channel.send("You talkin' to me?")
-	print(f'{context.message.author} tested me succesfully.')
+    await context.channel.send("You talkin' to me?")
+    print(f'{context.message.author} tested me succesfully.')
 
 
 bot.run(TOKEN)
