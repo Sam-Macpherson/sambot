@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-TOKEN = 'NzYzODAyMTE0MjU0MTc2MzM3.X39AJg.qJDFXaaGySXdHzVnVXX9d2ulm4I'
+TOKEN = 'TOKEN'
 
 description = '''sambot in Python'''
 bot = commands.Bot(command_prefix='?', description=description)
