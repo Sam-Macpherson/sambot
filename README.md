@@ -1,2 +1,2 @@
 # sambot
-A discord bot.
+A bot which can do some cool things.
