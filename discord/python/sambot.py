@@ -17,11 +17,7 @@ pastas = {
            'friend is making a painting of him. I found that very nice. '
            'Please be more like my friend and spread positivity. :smiley:',
     'homeless': 'no lie chat i started watching tantooni like a week ago '
-                'and i went from homeless to making 7 figures overnight',
-    'vibin': 'Tooni, I have an idea, so normally when I play beat saber '
-             'live I\'d have chat open on my hand, well, if I have your '
-             'stream open but not on my hand, but just in front of me, so '
-             'I can vibe with you whilst sabering'
+                'and i went from homeless to making 7 figures overnight'
 }
 
 bot = commands.Bot(command_prefix='?', description=description)
