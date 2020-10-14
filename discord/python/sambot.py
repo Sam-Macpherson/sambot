@@ -1,9 +1,13 @@
+import os
 import discord
 import requests
 from discord.ext import commands
+from dotenv import load_dotenv
 
-# Should be loading this from an environment variable.
-TOKEN = ''
+
+load_dotenv()
+
+TOKEN = os.getenv('DISCORD_TOKEN')
 
 description = '''sambot in Python'''
 
