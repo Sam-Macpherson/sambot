@@ -23,7 +23,7 @@ pastas = {
                 'and i went from homeless to making 7 figures overnight'
 }
 
-bot = commands.Bot(command_prefix='?', description=description)
+bot = commands.Bot(command_prefix='$', description=description)
 
 
 @bot.event
@@ -42,6 +42,7 @@ async def on_message(message):
         if pasta_key in message.content.lower():
             print(f'{message.author} instigated the "{pasta_key}" copy-pasta.')
             await message.channel.send(pastas[pasta_key])
+    await bot.process_commands(message)
 
 
 @bot.command()
