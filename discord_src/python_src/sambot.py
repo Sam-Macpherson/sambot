@@ -1,12 +1,8 @@
 import os
-import discord
 from discord.ext import commands
-from dotenv import load_dotenv
 
-
-load_dotenv()
-
-TOKEN = os.getenv('DISCORD_TOKEN')
+from environment import Environment
+from utilities.decorators import debuggable
 
 description = '''sambot in Python'''
 
@@ -29,15 +25,17 @@ bot = commands.Bot(command_prefix='$', description=description)
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name}, id: {bot.user.id}')
+    print(f'Debug mode is '
+          f'{"ENABLED" if Environment.get_instance().DEBUG else "DISABLED"}.')
     print('=========')
 
 
 @bot.event
+@debuggable
 async def on_message(message):
     # We don't want the bot replying to itself.
     if message.author == bot.user:
         return
-
     for pasta_key in pastas:
         if pasta_key in message.content.lower():
             print(f'{message.author} instigated the "{pasta_key}" copy-pasta.')
@@ -51,4 +49,17 @@ async def test(context):
     print(f'{context.message.author} tested me successfully.')
 
 
-bot.run(TOKEN)
+@bot.command()
+async def kill(context):
+    """This can only be run by the bot owner."""
+    if context.message.author.id == Environment.get_instance().OWNER_USER_ID:
+        print(f'{context.message.author} successfully killed the bot.')
+        await context.bot.logout()
+    else:
+        print(f'{context.message.author} (not owner) tried to kill the bot.')
+
+
+if Environment.get_instance().TOKEN is None:
+    print("Specify the DISCORD_TOKEN in the .env file.")
+else:
+    bot.run(Environment.get_instance().TOKEN)
