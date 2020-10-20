@@ -1,5 +1,5 @@
-import os
 from discord.ext import commands
+from discord.ext.commands import Command
 
 from environment import Environment
 from utilities.decorators import debuggable
@@ -18,8 +18,26 @@ pastas = {
     'homeless': 'no lie chat i started watching tantooni like a week ago '
                 'and i went from homeless to making 7 figures overnight'
 }
+# These only work in APSH, because of the ID fields, and are very much
+# a temporary proof-of-concept. At the very least we could use
+# await message.channel.guild.fetch_emojis() to get the emojis available.
+emotes = {
+    'cheer': '<:tantooCheer:699108024190632026>',
+    'clown': '<:tantooClown:699108024232706208>',
+    'sad': '<:tantooSad:702719869551902760>',
+    'engineer': '<:tantooGineer:700136352146260009>',
+}
 
 bot = commands.Bot(command_prefix='$', description=description)
+
+
+async def duplicate_emotes(context, number: int):
+    command = context.message.content.split(' ')[0][1:]
+    length = len(command)
+    # Discord has a 2000 character limit
+    number_to_print = min(2000 // length, number)
+    message = ''.join([emotes[command] for _ in range(number_to_print)])
+    await context.channel.send(message)
 
 
 @bot.event
@@ -29,6 +47,10 @@ async def on_ready():
           f'{"ENABLED" if Environment.get_instance().DEBUG else "DISABLED"}.')
     print('=========')
 
+    for emote in emotes:
+        command = Command(duplicate_emotes, name=emote)
+        bot.add_command(command)
+
 
 @bot.event
 @debuggable
@@ -36,6 +58,11 @@ async def on_message(message):
     # We don't want the bot replying to itself.
     if message.author == bot.user:
         return
+
+    print(f'Message received, author: {message.author}, '
+          f'content: {message.content}, '
+          f'cleaned content: {message.clean_content}')
+    # Copy pastas
     for pasta_key in pastas:
         if pasta_key in message.content.lower():
             print(f'{message.author} instigated the "{pasta_key}" copy-pasta.')
