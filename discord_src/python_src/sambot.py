@@ -4,6 +4,8 @@ from discord.ext.commands import Command
 from environment import Environment
 from utilities.decorators import debuggable
 
+from discord_src.python_src.models.user import User
+
 description = '''sambot in Python'''
 
 # These are loaded into RAM, maybe at some point I'll use text files.
@@ -58,10 +60,16 @@ async def on_message(message):
     # We don't want the bot replying to itself.
     if message.author == bot.user:
         return
-
     print(f'Message received, author: {message.author}, '
           f'content: {message.content}, '
           f'cleaned content: {message.clean_content}')
+    guild_user, created = User.get_or_create(
+        discord_id=message.author.id
+    )
+    if created:
+        print(f'User {message.author.id} has been added to the database.')
+        await message.channel.send(f'Welcome to the server '
+                                   f'{message.author.name}!')
     # Copy pastas
     for pasta_key in pastas:
         if pasta_key in message.content.lower():
