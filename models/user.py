@@ -1,6 +1,6 @@
 from peewee import *
 
-from discord_src.python_src.models.base_model import BaseModel
+from . import BaseModel
 
 
 class User(BaseModel):

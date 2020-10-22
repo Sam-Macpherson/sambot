@@ -4,11 +4,9 @@ A singleton class to store the environment variables.
 import os
 
 from dotenv import load_dotenv
-from peewee import SqliteDatabase
 
-from utilities.utilities import truthy
-
-from discord_src.python_src.models.user import User
+from models import User, base_model
+from utilities import truthy
 
 
 class Environment:
@@ -45,9 +43,9 @@ class Environment:
             self.DEBUG = truthy(os.getenv('DEBUG'))
             self.DEBUG_CHANNEL_ID = integer_variables['DEBUG_CHANNEL_ID']
             self.OWNER_USER_ID = integer_variables['OWNER_USER_ID']
-            self.DB = SqliteDatabase('sambot.db')
+            self.DB = base_model.db
             self.DB.connect()
-            self.DB.create_tables(self.DATABASE_TABLES)
+            self.DB.create_tables([User])
             Environment.__instance = self
 
 

@@ -2,9 +2,9 @@ from discord.ext import commands
 from discord.ext.commands import Command
 
 from environment import Environment
+from models import User
 from utilities.decorators import debuggable
 
-from discord_src.python_src.models.user import User
 
 description = '''sambot in Python'''
 
@@ -64,7 +64,8 @@ async def on_message(message):
           f'content: {message.content}, '
           f'cleaned content: {message.clean_content}')
     guild_user, created = User.get_or_create(
-        discord_id=message.author.id
+        discord_id=message.author.id,
+        display_name=message.author.name
     )
     if created:
         print(f'User {message.author.id} has been added to the database.')
