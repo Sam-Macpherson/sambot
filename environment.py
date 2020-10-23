@@ -5,7 +5,7 @@ import os
 
 from dotenv import load_dotenv
 
-from models import User, base_model
+from models import User, base_model, TriggeredResponse
 from utilities import truthy
 
 
@@ -45,7 +45,7 @@ class Environment:
             self.OWNER_USER_ID = integer_variables['OWNER_USER_ID']
             self.DB = base_model.db
             self.DB.connect()
-            self.DB.create_tables([User])
+            self.DB.create_tables([User, TriggeredResponse])
             Environment.__instance = self
 
 

@@ -1,8 +1,8 @@
 from discord.ext import commands
-from discord.ext.commands import Command
+from discord.ext.commands import Command, has_permissions
 
 from environment import Environment
-from models import User
+from models import User, TriggeredResponse
 from utilities.decorators import debuggable
 
 
@@ -65,23 +65,59 @@ async def on_message(message):
           f'cleaned content: {message.clean_content}')
     guild_user, created = User.get_or_create(
         discord_id=message.author.id,
-        display_name=message.author.name
+        defaults={
+            'display_name': message.author.name
+        }
     )
     if created:
         print(f'User {message.author.id} has been added to the database.')
         await message.channel.send(f'Welcome to the server '
                                    f'{message.author.name}!')
-    # Copy pastas
-    for pasta_key in pastas:
-        if pasta_key in message.content.lower():
-            print(f'{message.author} instigated the "{pasta_key}" copy-pasta.')
-            await message.channel.send(pastas[pasta_key])
+    elif guild_user.display_name != message.author.name:
+        print(f'User {message.author.id} updated their username and is being'
+              f'updated in the database.')
+        guild_user.display_name = message.author.name
+        guild_user.save()
+
+    words_in_message = message.content.lower().split(' ')
+    for word in words_in_message:
+        response = TriggeredResponse.get_or_none(
+            guild_id=message.guild.id,
+            trigger=word
+        )
+        if response is not None:
+            print(f'{message.author.id} instigated the "{word}" triggered '
+                  f'response.')
+            await message.channel.send(response.response)
+            break
     await bot.process_commands(message)
+
+
+@bot.command('addpasta')
+@has_permissions(manage_messages=True)
+async def add_trigger_response(context, trigger, response):
+    guild_id = context.guild.id
+    triggered_response, created = TriggeredResponse.get_or_create(
+        guild_id=guild_id,
+        trigger=trigger,
+        defaults={
+            'response': response
+        }
+    )
+    if created:
+        await context.channel.send(response)
+        print(f'{context.message.author.id} created a copy-pasta in '
+              f'the guild: {guild_id} ({context.guild.name}).')
+    else:
+        await context.message.author.send(f'You don\'t have permissions to '
+                                          f'add copy-pastas to that guild.')
+        print(f'{context.message.author.id} tried to create a copy-pasta in '
+              f'the guild: {guild_id} ({context.guild.name}).')
 
 
 @bot.command()
 async def test(context):
-    await context.channel.send("You talkin' to me?")
+    await context.channel.send('You talkin\' to me?')
     print(f'{context.message.author} tested me successfully.')
 
 
@@ -96,6 +132,6 @@ async def kill(context):
 
 
 if Environment.get_instance().TOKEN is None:
-    print("Specify the DISCORD_TOKEN in the .env file.")
+    print('Specify the DISCORD_TOKEN in the .env file.')
 else:
     bot.run(Environment.get_instance().TOKEN)
