@@ -1,25 +1,17 @@
+from datetime import datetime, timedelta
+
 from discord.ext import commands
 from discord.ext.commands import Command, has_permissions
 
 from environment import Environment
 from models import User, TriggeredResponse
+from models.guild import Guild
+from models.triggered_response_usage_timestamp import TriggeredResponseUsageTimestamp
 from utilities.decorators import debuggable
 
 
 description = '''sambot in Python'''
 
-# These are loaded into RAM, maybe at some point I'll use text files.
-pastas = {
-    'saturday': 'guys i have exciting news to announce! Next saturday, naked '
-                'tantooni stream! come one, come all, get ready for the thrill'
-                ' of a lifetime!',
-    'cat': 'HeyGuys Hope you are all doing wonderful. I know I\'m not. My '
-           ':cat: was just put down. I just wanted to let you know. And my '
-           'friend is making a painting of him. I found that very nice. '
-           'Please be more like my friend and spread positivity. :smiley:',
-    'homeless': 'no lie chat i started watching tantooni like a week ago '
-                'and i went from homeless to making 7 figures overnight'
-}
 # These only work in APSH, because of the ID fields, and are very much
 # a temporary proof-of-concept. At the very least we could use
 # await message.channel.guild.fetch_emojis() to get the emojis available.
@@ -46,7 +38,7 @@ async def duplicate_emotes(context, number: int):
 async def on_ready():
     print(f'Logged in as {bot.user.name}, id: {bot.user.id}')
     print(f'Debug mode is '
-          f'{"ENABLED" if Environment.get_instance().DEBUG else "DISABLED"}.')
+          f'{"ENABLED" if Environment.instance().DEBUG else "DISABLED"}.')
     print('=========')
 
     for emote in emotes:
@@ -64,13 +56,21 @@ async def on_message(message):
     print(f'Message received, author: {message.author}, '
           f'content: {message.content}, '
           f'cleaned content: {message.clean_content}')
-    guild_user, created = User.get_or_create(
+    guild_user, user_created = User.get_or_create(
         discord_id=message.author.id,
         defaults={
             'display_name': message.author.name
         }
     )
-    if created:
+    guild_id = message.guild.id
+    guild, guild_created = Guild.get_or_create(
+        guild_id=guild_id,
+        defaults={
+            'guild_name': message.guild.name
+        }
+    )
+
+    if user_created:
         print(f'User {message.author.id} has been added to the database.')
         await message.channel.send(f'Welcome to the server '
                                    f'{message.author.name}!')
@@ -78,7 +78,6 @@ async def on_message(message):
         print(f'User {message.author.id} updated their username and is being'
               f'updated in the database.')
         guild_user.display_name = message.author.name
-        guild_user.save()
     if not message.clean_content.startswith('$'):
         words_in_message = message.content.lower().split(' ')
         for word in words_in_message:
@@ -87,16 +86,27 @@ async def on_message(message):
                 trigger=word
             )
             if response is not None:
-                print(f'{message.author.id} instigated the "{word}" triggered '
-                      f'response.')
-                await message.channel.send(response.response)
-                break
+                last_used, timestamp_created = \
+                    TriggeredResponseUsageTimestamp.get_or_create(
+                        user=guild_user,
+                        triggered_response=response
+                    )
+                now = datetime.now()
+                if (timestamp_created or last_used.timestamp + timedelta(
+                        seconds=guild.triggered_response_cooldown) <= now):
+                    last_used.timestamp = now
+                    last_used.save()
+                    print(f'{message.author.id} instigated the "{word}" '
+                          f'triggered response.')
+                    await message.channel.send(response.response)
+                    break
+    guild_user.save()
     await bot.process_commands(message)
 
 
 @bot.command('addpasta')
 @has_permissions(manage_messages=True)
-async def add_triggered_response(context, trigger, response):
+async def add_triggered_response(context, trigger: str, response: str):
     guild_id = context.guild.id
     triggered_response, created = TriggeredResponse.get_or_create(
         guild_id=guild_id,
@@ -120,7 +130,7 @@ async def add_triggered_response(context, trigger, response):
 
 @bot.command('removepasta')
 @has_permissions(manage_messages=True)
-async def remove_triggered_reponse(context, trigger):
+async def remove_triggered_response(context, trigger: str):
     guild_id = context.guild.id
     triggered_response = TriggeredResponse.get_or_none(
         guild_id=guild_id,
@@ -133,6 +143,21 @@ async def remove_triggered_reponse(context, trigger):
         triggered_response.delete_instance()
 
 
+@bot.command('pastadelay')
+@has_permissions(manage_messages=True)
+async def set_triggered_response_cooldown(context, cooldown: int):
+    guild_id = context.guild.id
+    # It is guaranteed that the guild exists, because we already
+    # had to pass through on_message.
+    guild = Guild.get(guild_id=guild_id)
+    old_cooldown = guild.triggered_response_cooldown
+    guild.triggered_response_cooldown = cooldown
+    guild.save()
+    print(f'Guild {guild.guild_id} ({guild.guild_name}) triggered response '
+          f'cooldown updated from {old_cooldown} to '
+          f'{cooldown}')
+
+
 @bot.command()
 async def test(context):
     await context.channel.send('You talkin\' to me?')
@@ -142,14 +167,14 @@ async def test(context):
 @bot.command()
 async def kill(context):
     """This can only be run by the bot owner."""
-    if context.message.author.id == Environment.get_instance().OWNER_USER_ID:
+    if context.message.author.id == Environment.instance().OWNER_USER_ID:
         print(f'{context.message.author} successfully killed the bot.')
         await context.bot.logout()
     else:
         print(f'{context.message.author} (not owner) tried to kill the bot.')
 
 
-if Environment.get_instance().TOKEN is None:
+if Environment.instance().TOKEN is None:
     print('Specify the DISCORD_TOKEN in the .env file.')
 else:
-    bot.run(Environment.get_instance().TOKEN)
+    bot.run(Environment.instance().TOKEN)

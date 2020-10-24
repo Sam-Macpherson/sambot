@@ -10,8 +10,8 @@ def debuggable(function):
     is set to True.
     """
     async def wrapper(context):
-        if not Environment.get_instance().DEBUG or \
-                Environment.get_instance().DEBUG_CHANNEL_ID == \
+        if not Environment.instance().DEBUG or \
+                Environment.instance().DEBUG_CHANNEL_ID == \
                 context.channel.id:
             await function(context)
     wrapper.__name__ = function.__name__
