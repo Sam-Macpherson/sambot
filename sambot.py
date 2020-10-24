@@ -60,6 +60,7 @@ async def on_message(message):
     # We don't want the bot replying to itself.
     if message.author == bot.user:
         return
+
     print(f'Message received, author: {message.author}, '
           f'content: {message.content}, '
           f'cleaned content: {message.clean_content}')
@@ -78,24 +79,24 @@ async def on_message(message):
               f'updated in the database.')
         guild_user.display_name = message.author.name
         guild_user.save()
-
-    words_in_message = message.content.lower().split(' ')
-    for word in words_in_message:
-        response = TriggeredResponse.get_or_none(
-            guild_id=message.guild.id,
-            trigger=word
-        )
-        if response is not None:
-            print(f'{message.author.id} instigated the "{word}" triggered '
-                  f'response.')
-            await message.channel.send(response.response)
-            break
+    if not message.clean_content.startswith('$'):
+        words_in_message = message.content.lower().split(' ')
+        for word in words_in_message:
+            response = TriggeredResponse.get_or_none(
+                guild_id=message.guild.id,
+                trigger=word
+            )
+            if response is not None:
+                print(f'{message.author.id} instigated the "{word}" triggered '
+                      f'response.')
+                await message.channel.send(response.response)
+                break
     await bot.process_commands(message)
 
 
 @bot.command('addpasta')
 @has_permissions(manage_messages=True)
-async def add_trigger_response(context, trigger, response):
+async def add_triggered_response(context, trigger, response):
     guild_id = context.guild.id
     triggered_response, created = TriggeredResponse.get_or_create(
         guild_id=guild_id,
@@ -105,14 +106,31 @@ async def add_trigger_response(context, trigger, response):
         }
     )
     if created:
-        await context.channel.send(response)
         print(f'{context.message.author.id} created a copy-pasta in '
-              f'the guild: {guild_id} ({context.guild.name}).')
+              f'the guild: {guild_id} ({context.guild.name}). '
+              f'Trigger: {trigger}, Response: {response}')
     else:
-        await context.message.author.send(f'You don\'t have permissions to '
-                                          f'add copy-pastas to that guild.')
-        print(f'{context.message.author.id} tried to create a copy-pasta in '
-              f'the guild: {guild_id} ({context.guild.name}).')
+        triggered_response.response = response
+        triggered_response.save()
+        print(f'{context.message.author.id} updated the copy-pasta in '
+              f'the guild: {guild_id} ({context.guild.name}). '
+              f'Trigger: {trigger}, New Response: {response}')
+    await context.channel.send(response)
+
+
+@bot.command('removepasta')
+@has_permissions(manage_messages=True)
+async def remove_triggered_reponse(context, trigger):
+    guild_id = context.guild.id
+    triggered_response = TriggeredResponse.get_or_none(
+        guild_id=guild_id,
+        trigger=trigger
+    )
+    if triggered_response is not None:
+        print(f'{context.message.author.id} removed a copy-pasta in '
+              f'the guild: {guild_id} ({context.guild.name}). '
+              f'Trigger: {trigger}')
+        triggered_response.delete_instance()
 
 
 @bot.command()
