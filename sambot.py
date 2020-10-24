@@ -72,8 +72,6 @@ async def on_message(message):
 
     if user_created:
         print(f'User {message.author.id} has been added to the database.')
-        await message.channel.send(f'Welcome to the server '
-                                   f'{message.author.name}!')
     elif guild_user.display_name != message.author.name:
         print(f'User {message.author.id} updated their username and is being'
               f'updated in the database.')
