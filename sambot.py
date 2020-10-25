@@ -151,6 +151,8 @@ async def set_triggered_response_cooldown(context, cooldown: int):
     old_cooldown = guild.triggered_response_cooldown
     guild.triggered_response_cooldown = cooldown
     guild.save()
+    await context.channel.send(f'Guild pasta cooldown changed from '
+                               f'{old_cooldown} to {cooldown}')
     print(f'Guild {guild.guild_id} ({guild.guild_name}) triggered response '
           f'cooldown updated from {old_cooldown} to '
           f'{cooldown}')
