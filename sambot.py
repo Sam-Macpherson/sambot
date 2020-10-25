@@ -3,12 +3,16 @@ from datetime import datetime, timedelta
 from discord.ext import commands
 from discord.ext.commands import Command
 
-from cogs.triggered_responses import TriggeredResponseCog
+from cogs import (
+    BannedWordsCog,
+    TriggeredResponseCog,
+)
 from environment import Environment
-from models import User, TriggeredResponse
+from models import User, TriggeredResponse, BannedWord
 from models.guild import Guild
 from models.triggered_response_usage_timestamp import (
-    TriggeredResponseUsageTimestamp)
+    TriggeredResponseUsageTimestamp,
+)
 from utilities.decorators import debuggable
 
 
@@ -43,6 +47,7 @@ async def on_ready():
           f'{"ENABLED" if Environment.instance().DEBUG else "DISABLED"}.')
     print('=========')
     bot.add_cog(TriggeredResponseCog(bot))
+    bot.add_cog(BannedWordsCog(bot))
 
     for emote in emotes:
         command = Command(duplicate_emotes, name=emote)
@@ -87,6 +92,13 @@ async def on_message(message):
         checked_words = []
         for word in words_in_message:
             if word not in checked_words:
+                # Delete messages if they contain banned words.
+                banned_word = BannedWord.get_or_none(guild=guild, word=word)
+                if banned_word is not None:
+                    await message.delete()
+                    # Send a warning DM to the sender.
+                    await message.author.send(f'Don\'t be saying that stuff.')
+                    break
                 response = TriggeredResponse.get_or_none(
                     guild_id=message.guild.id,
                     trigger=word

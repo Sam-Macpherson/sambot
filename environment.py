@@ -5,9 +5,16 @@ import os
 
 from dotenv import load_dotenv
 
-from models import User, base_model, TriggeredResponse
+from models import (
+    User,
+    BannedWord,
+    base_model,
+    TriggeredResponse,
+)
 from models.guild import Guild
-from models.triggered_response_usage_timestamp import TriggeredResponseUsageTimestamp
+from models.triggered_response_usage_timestamp import (
+    TriggeredResponseUsageTimestamp,
+)
 from utilities import truthy
 
 
@@ -16,6 +23,7 @@ class Environment:
     database_tables = [
         User,
         Guild,
+        BannedWord,
         TriggeredResponse,
         TriggeredResponseUsageTimestamp
     ]
