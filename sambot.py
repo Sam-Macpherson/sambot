@@ -1,12 +1,14 @@
 from datetime import datetime, timedelta
 
 from discord.ext import commands
-from discord.ext.commands import Command, has_permissions
+from discord.ext.commands import Command
 
+from cogs.triggered_responses import TriggeredResponseCog
 from environment import Environment
 from models import User, TriggeredResponse
 from models.guild import Guild
-from models.triggered_response_usage_timestamp import TriggeredResponseUsageTimestamp
+from models.triggered_response_usage_timestamp import (
+    TriggeredResponseUsageTimestamp)
 from utilities.decorators import debuggable
 
 
@@ -40,6 +42,7 @@ async def on_ready():
     print(f'Debug mode is '
           f'{"ENABLED" if Environment.instance().DEBUG else "DISABLED"}.')
     print('=========')
+    bot.add_cog(TriggeredResponseCog(bot))
 
     for emote in emotes:
         command = Command(duplicate_emotes, name=emote)
@@ -78,84 +81,35 @@ async def on_message(message):
         guild_user.display_name = message.author.name
     if not message.clean_content.startswith('$'):
         words_in_message = message.content.lower().split(' ')
+        # Local cache of words so we don't have to hit the database for
+        # repeated words, like if a message is "bot bot bot bot bot dead"
+        # it won't do a query for "bot" 5 times.
+        checked_words = []
         for word in words_in_message:
-            response = TriggeredResponse.get_or_none(
-                guild_id=message.guild.id,
-                trigger=word
-            )
-            if response is not None:
-                last_used, timestamp_created = \
-                    TriggeredResponseUsageTimestamp.get_or_create(
-                        user=guild_user,
-                        triggered_response=response
-                    )
-                now = datetime.now()
-                if (timestamp_created or last_used.timestamp + timedelta(
-                        seconds=guild.triggered_response_cooldown) <= now):
-                    last_used.timestamp = now
-                    last_used.save()
-                    print(f'{message.author.id} instigated the "{word}" '
-                          f'triggered response.')
-                    await message.channel.send(response.response)
-                    break
+            if word not in checked_words:
+                response = TriggeredResponse.get_or_none(
+                    guild_id=message.guild.id,
+                    trigger=word
+                )
+                checked_words.append(word)
+                if response is not None:
+                    last_used, timestamp_created = \
+                        TriggeredResponseUsageTimestamp.get_or_create(
+                            user=guild_user,
+                            triggered_response=response
+                        )
+                    now = datetime.now()
+                    if (timestamp_created or last_used.timestamp + timedelta(
+                            seconds=guild.triggered_response_cooldown) <= now):
+                        last_used.timestamp = now
+                        last_used.save()
+                        print(f'{message.author.id} instigated the "{word}" '
+                              f'triggered response.')
+                        await message.channel.send(response.response)
+                        # Only 1 triggered response per message.
+                        break
     guild_user.save()
     await bot.process_commands(message)
-
-
-@bot.command('addpasta')
-@has_permissions(manage_messages=True)
-async def add_triggered_response(context, trigger: str, response: str):
-    guild_id = context.guild.id
-    triggered_response, created = TriggeredResponse.get_or_create(
-        guild_id=guild_id,
-        trigger=trigger,
-        defaults={
-            'response': response
-        }
-    )
-    if created:
-        print(f'{context.message.author.id} created a copy-pasta in '
-              f'the guild: {guild_id} ({context.guild.name}). '
-              f'Trigger: {trigger}, Response: {response}')
-    else:
-        triggered_response.response = response
-        triggered_response.save()
-        print(f'{context.message.author.id} updated the copy-pasta in '
-              f'the guild: {guild_id} ({context.guild.name}). '
-              f'Trigger: {trigger}, New Response: {response}')
-    await context.channel.send(response)
-
-
-@bot.command('removepasta')
-@has_permissions(manage_messages=True)
-async def remove_triggered_response(context, trigger: str):
-    guild_id = context.guild.id
-    triggered_response = TriggeredResponse.get_or_none(
-        guild_id=guild_id,
-        trigger=trigger
-    )
-    if triggered_response is not None:
-        print(f'{context.message.author.id} removed a copy-pasta in '
-              f'the guild: {guild_id} ({context.guild.name}). '
-              f'Trigger: {trigger}')
-        triggered_response.delete_instance()
-
-
-@bot.command('pastadelay')
-@has_permissions(manage_messages=True)
-async def set_triggered_response_cooldown(context, cooldown: int):
-    guild_id = context.guild.id
-    # It is guaranteed that the guild exists, because we already
-    # had to pass through on_message.
-    guild = Guild.get(guild_id=guild_id)
-    old_cooldown = guild.triggered_response_cooldown
-    guild.triggered_response_cooldown = cooldown
-    guild.save()
-    await context.channel.send(f'Guild pasta cooldown changed from '
-                               f'{old_cooldown} to {cooldown}')
-    print(f'Guild {guild.guild_id} ({guild.guild_name}) triggered response '
-          f'cooldown updated from {old_cooldown} to '
-          f'{cooldown}')
 
 
 @bot.command()
