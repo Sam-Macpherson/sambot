@@ -100,7 +100,7 @@ async def on_message(message):
                     await message.author.send(f'Don\'t be saying that stuff.')
                     break
                 response = TriggeredResponse.get_or_none(
-                    guild_id=message.guild.id,
+                    guild=guild,
                     trigger=word
                 )
                 checked_words.append(word)
