@@ -70,9 +70,8 @@ async def on_message(message):
             'display_name': message.author.name
         }
     )
-    guild_id = message.guild.id
     guild, guild_created = Guild.get_or_create(
-        guild_id=guild_id,
+        guild_id=message.guild.id,
         defaults={
             'guild_name': message.guild.name
         }
