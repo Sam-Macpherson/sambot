@@ -64,6 +64,7 @@ class Environment:
             self.TRIGGERED_RESPONSE_COOLDOWN = 120
             self.DB.connect()
             self.DB.create_tables(self.database_tables)
+            self.BOT_COMMANDS = []
             Environment.__instance = self
 
 

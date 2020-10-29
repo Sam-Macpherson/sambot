@@ -1,3 +1,4 @@
+import string
 from datetime import datetime, timedelta
 
 from discord.ext import commands
@@ -48,7 +49,9 @@ async def on_ready():
     print('=========')
     bot.add_cog(TriggeredResponseCog(bot))
     bot.add_cog(BannedWordsCog(bot))
-
+    Environment.instance().BOT_COMMANDS = [
+        command.name for command in bot.commands
+    ]
     for emote in emotes:
         command = Command(duplicate_emotes, name=emote)
         bot.add_command(command)
@@ -83,13 +86,19 @@ async def on_message(message):
         print(f'User {message.author.id} updated their username and is being'
               f'updated in the database.')
         guild_user.display_name = message.author.name
-    if not message.clean_content.startswith('$'):
-        words_in_message = message.content.lower().split(' ')
+    words_in_message = message.content.lower().split(' ')
+    first_word = words_in_message[0]
+    print(first_word)
+    print(bot.commands)
+    if not (first_word.startswith('$') and
+            first_word[1:] in Environment.instance().BOT_COMMANDS):
         # Local cache of words so we don't have to hit the database for
         # repeated words, like if a message is "bot bot bot bot bot dead"
         # it won't do a query for "bot" 5 times.
         checked_words = []
         for word in words_in_message:
+            # Remove all punctuation and symbols.
+            word = word.translate(str.maketrans('', '', string.punctuation))
             if word not in checked_words:
                 # Delete messages if they contain banned words.
                 banned_word = BannedWord.get_or_none(guild=guild, word=word)
