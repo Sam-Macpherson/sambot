@@ -16,7 +16,7 @@ class BannedWordsCog(commands.Cog):
         if guild is not None:
             banned_word, created = BannedWord.get_or_create(
                 guild=guild,
-                word=word,
+                word=word.lower(),
             )
             if created:
                 print(f'{context.message.author.id} banned a word in '
