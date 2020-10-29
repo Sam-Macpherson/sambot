@@ -88,8 +88,7 @@ async def on_message(message):
         guild_user.display_name = message.author.name
     words_in_message = message.content.lower().split(' ')
     first_word = words_in_message[0]
-    print(first_word)
-    print(bot.commands)
+    punctuation_removal_translation = str.maketrans('', '', string.punctuation)
     if not (first_word.startswith('$') and
             first_word[1:] in Environment.instance().BOT_COMMANDS):
         # Local cache of words so we don't have to hit the database for
@@ -98,7 +97,7 @@ async def on_message(message):
         checked_words = []
         for word in words_in_message:
             # Remove all punctuation and symbols.
-            word = word.translate(str.maketrans('', '', string.punctuation))
+            word = word.translate(punctuation_removal_translation)
             if word not in checked_words:
                 # Delete messages if they contain banned words.
                 banned_word = BannedWord.get_or_none(guild=guild, word=word)
