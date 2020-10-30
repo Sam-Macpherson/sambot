@@ -1,6 +1,8 @@
+import io
 import string
 from datetime import datetime, timedelta
 
+import discord
 from discord.ext import commands
 from discord.ext.commands import Command
 
@@ -118,15 +120,27 @@ async def on_message(message):
                             triggered_response=response
                         )
                     now = datetime.now()
-                    if (timestamp_created or last_used.timestamp + timedelta(
-                            seconds=guild.triggered_response_cooldown) <= now):
-                        last_used.timestamp = now
-                        last_used.save()
-                        print(f'{message.author.id} instigated the "{word}" '
-                              f'triggered response.')
-                        await message.channel.send(response.response)
-                        # Only 1 triggered response per message.
-                        break
+                    if response.type == TriggeredResponse.TEXT:
+                        if (timestamp_created or last_used.timestamp + timedelta(
+                                seconds=guild.triggered_text_cooldown) <= now):
+                            last_used.timestamp = now
+                            last_used.save()
+                            print(f'{message.author.id} instigated the "{word}" '
+                                  f'triggered response.')
+                            await message.channel.send(response.response)
+                            # Only 1 triggered response per message.
+                            break
+                    elif response.type == TriggeredResponse.IMAGE:
+                        if(timestamp_created or last_used.timestamp + timedelta(
+                                seconds=guild.triggered_image_cooldown) <= now):
+                            last_used.timestamp = now
+                            last_used.save()
+                            data = io.BytesIO(response.image)
+                            await message.channel.send(
+                                file=discord.File(data, 'image.jpg')
+                            )
+                            break
+
     guild_user.save()
     await bot.process_commands(message)
 
