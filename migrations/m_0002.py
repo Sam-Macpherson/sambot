@@ -1,6 +1,6 @@
 from playhouse.migrate import *
 
-from models import Guild, TriggeredResponse
+from models import TriggeredResponse
 
 """
 This migration alters the TriggeredResponse object to store a
