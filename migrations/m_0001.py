@@ -1,6 +1,6 @@
 from playhouse.migrate import *
 
-from models import Guild, TriggeredResponse
+from models import Guild
 
 """
 This migration alters the TriggeredResponse object to use a foreign
