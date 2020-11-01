@@ -1,7 +1,11 @@
 from peewee import *
 
 
-db = SqliteDatabase('sambot.db')
+db = SqliteDatabase('sambot.db',
+                    pragmas={
+                        'foreign_keys': 1,
+                        'journal_mode': 'wal',
+                    })
 
 
 class BaseModel(Model):
