@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 
 import discord
 from discord.ext import commands
-from discord.ext.commands import Command
 
 from cogs import (
     BannedWordsCog,
@@ -17,30 +16,13 @@ from models.triggered_response_usage_timestamp import (
     TriggeredResponseUsageTimestamp,
 )
 from utilities.decorators import debuggable
+from utilities.lru_cache import LRUCache
 
-
-description = '''sambot in Python'''
-
-# These only work in APSH, because of the ID fields, and are very much
-# a temporary proof-of-concept. At the very least we could use
-# await message.channel.guild.fetch_emojis() to get the emojis available.
-emotes = {
-    'cheer': '<:tantooCheer:699108024190632026>',
-    'clown': '<:tantooClown:699108024232706208>',
-    'sad': '<:tantooSad:702719869551902760>',
-    'engineer': '<:tantooGineer:700136352146260009>',
-}
+description = '''sambot in Python.'''
 
 bot = commands.Bot(command_prefix='$', description=description)
-
-
-async def duplicate_emotes(context, number: int):
-    command = context.message.content.split(' ')[0][1:]
-    length = len(command)
-    # Discord has a 2000 character limit
-    number_to_print = min(2000 // length, number)
-    message = ''.join([emotes[command] for _ in range(number_to_print)])
-    await context.channel.send(message)
+guild_cache = LRUCache(capacity=5)
+user_cache = LRUCache(capacity=10)
 
 
 @bot.event
@@ -54,9 +36,6 @@ async def on_ready():
     Environment.instance().BOT_COMMANDS = [
         command.name for command in bot.commands
     ]
-    for emote in emotes:
-        command = Command(duplicate_emotes, name=emote)
-        bot.add_command(command)
 
 
 @bot.event
@@ -65,29 +44,39 @@ async def on_message(message):
     # We don't want the bot replying to itself.
     if message.author == bot.user:
         return
-
     print(f'Message received, author: {message.author}, '
           f'content: {message.content}, '
           f'cleaned content: {message.clean_content}')
-    guild_user, user_created = User.get_or_create(
-        discord_id=message.author.id,
-        defaults={
-            'display_name': message.author.name
-        }
-    )
-    guild, guild_created = Guild.get_or_create(
-        guild_id=message.guild.id,
-        defaults={
-            'guild_name': message.guild.name
-        }
-    )
-
+    user = user_cache.get(message.author.id)
+    user_created = False
+    if not user:
+        # Cache miss.
+        print(f'Cache miss on user: {message.author.id}')
+        user, user_created = User.get_or_create(
+            discord_id=message.author.id,
+            defaults={
+                'display_name': message.author.name
+            }
+        )
+        user_cache.put(user.discord_id, user)
+    guild = guild_cache.get(message.guild.id)
+    guild_created = False
+    if not guild:
+        # Cache miss.
+        print(f'Cache miss on guild: {message.guild.id}')
+        guild, guild_created = Guild.get_or_create(
+            guild_id=message.guild.id,
+            defaults={
+                'guild_name': message.guild.name
+            }
+        )
+        guild_cache.put(guild.guild_id, guild)
     if user_created:
         print(f'User {message.author.id} has been added to the database.')
-    elif guild_user.display_name != message.author.name:
+    elif user.display_name != message.author.name:
         print(f'User {message.author.id} updated their username and is being'
               f'updated in the database.')
-        guild_user.display_name = message.author.name
+        user.display_name = message.author.name
     words_in_message = message.content.lower().split(' ')
     first_word = words_in_message[0]
     punctuation_removal_translation = str.maketrans('', '', string.punctuation)
@@ -116,7 +105,7 @@ async def on_message(message):
                 if response is not None:
                     last_used, timestamp_created = \
                         TriggeredResponseUsageTimestamp.get_or_create(
-                            user=guild_user,
+                            user=user,
                             triggered_response=response
                         )
                     now = datetime.now()
@@ -140,8 +129,7 @@ async def on_message(message):
                                 file=discord.File(data, 'image.jpg')
                             )
                             break
-
-    guild_user.save()
+    user.save()
     await bot.process_commands(message)
 
 
