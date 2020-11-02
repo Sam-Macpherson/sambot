@@ -97,33 +97,55 @@ async def on_message(message):
                     # Send a warning DM to the sender.
                     await message.author.send(f'Don\'t be saying that stuff.')
                     break
+                now = datetime.now()
+                if guild.cooldown_type == Guild.GLOBAL:
+                    user_cannot_trigger = (
+                        TriggeredResponseUsageTimestamp
+                        .select()
+                        .where(
+                            TriggeredResponseUsageTimestamp.user_id ==
+                            user.discord_id,
+                            TriggeredResponseUsageTimestamp.timestamp >
+                            now - timedelta(seconds=
+                                            guild.triggered_text_cooldown))
+                        .exists())
+                    if user_cannot_trigger:
+                        break
                 response = TriggeredResponse.get_or_none(
                     guild=guild,
                     trigger=word
                 )
                 checked_words.append(word)
                 if response is not None:
+                    now = datetime.now()
                     last_used, timestamp_created = \
                         TriggeredResponseUsageTimestamp.get_or_create(
                             user=user,
                             triggered_response=response
                         )
-                    now = datetime.now()
                     if response.type == TriggeredResponse.TEXT:
-                        if (timestamp_created or last_used.timestamp + timedelta(
-                                seconds=guild.triggered_text_cooldown) <= now):
+                        if (timestamp_created or last_used.timestamp +
+                                timedelta(
+                                    seconds=
+                                    guild.triggered_text_cooldown) <= now):
                             last_used.timestamp = now
                             last_used.save()
-                            print(f'{message.author.id} instigated the "{word}" '
+                            print(f'{message.author.id} triggered the "{word}" '
                                   f'triggered response.')
                             await message.channel.send(response.response)
                             # Only 1 triggered response per message.
                             break
                     elif response.type == TriggeredResponse.IMAGE:
-                        if(timestamp_created or last_used.timestamp + timedelta(
-                                seconds=guild.triggered_image_cooldown) <= now):
+                        if guild.cooldown_type == Guild.GLOBAL:
+                            cooldown = guild.triggered_text_cooldown
+                        else:
+                            cooldown = guild.triggered_image_cooldown
+                        if (timestamp_created or last_used.timestamp +
+                                timedelta(seconds=cooldown) <= now):
                             last_used.timestamp = now
                             last_used.save()
+                            print(f'{message.author.id} triggered the "{word}" '
+                                  f'triggered image.')
                             data = io.BytesIO(response.image)
                             await message.channel.send(
                                 file=discord.File(data, 'image.jpg')

@@ -16,6 +16,23 @@ class TriggeredResponseCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command(name='cooldowntype')
+    @has_permissions(manage_messages=True)
+    async def set_cooldown_type(self, context, type: str):
+        valid_types = ['global', 'perpasta']
+        if type not in valid_types:
+            return
+        guild = Guild.get(guild_id=context.guild.id)
+        if type == 'global':
+            guild.cooldown_type = guild.GLOBAL
+        else:
+            guild.cooldown_type = guild.PER_RESPONSE
+        guild.save()
+        await context.channel.send(f'Guild cooldown type changed '
+                                   f'to {type}')
+        print(f'Guild {guild.guild_id} ({guild.guild_name}) triggered response '
+              f'cooldown type updated to {type}')
+
     @commands.command(name='addpasta')
     @has_permissions(manage_messages=True)
     async def add_triggered_text(self, context, trigger: str, response: str):

@@ -60,10 +60,10 @@ if __name__ == '__main__':
                 f'\n',
                 f'\n',
                 f'def migration():\n',
-                f'\tdatabase = SqliteDatabase(\'sambot.db\')\n',
-                f'\tmigrator = SqliteMigrator(database)\n',
-                f'\t# Write migration here.\n',
-                f'\t\n',
+                f'    database = SqliteDatabase(\'sambot.db\')\n',
+                f'    migrator = SqliteMigrator(database)\n',
+                f'    # Write migration here.\n',
+                f'    \n',
             ]
             with open(f'migrations/m_{new_migration}.py', 'w') as f:
                 f.writelines(lines)
