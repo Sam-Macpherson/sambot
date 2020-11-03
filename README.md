@@ -10,6 +10,9 @@ server moderator (`manage_message` permissions).
     * [Language filter](#language-filter-)
 * [Future Work](#-future-work)
 * [Commands](#-commands)
+    * [Triggered responses commands](#triggered-response-commands)
+    * [Triggered images commands](#triggered-images-commands)
+    * [Language filter commands](#language-filter-commands)
 * [Message Processing](#-message-processing)
 * [Database and Models](#-database-and-models)
 * [Migrations](#-migrations)
@@ -24,7 +27,8 @@ sambot can be configured to respond with "Hello yourself!". The trigger words
 and their corresponding responses are all manageable by users of a Discord guild
 with `manage_messages` permissions. The triggered responses can be locked with 
 cooldowns, to prevent spam. There are two types of cooldowns to choose from,
-which will each be explained in detail in the [Commands](#-commands) section.
+which will each be explained in detail in the 
+[Commands](#triggered-response-commands) section.
 
 Example:
 
@@ -36,7 +40,7 @@ specific "trigger" words, and responds with an image, whose URL is specified by
 the creator of the trigger. Triggered images are manageable by users of a 
 Discord guild with `manage_messages` permissions. Triggered images also have
 cooldown support similarly to triggered responses, which will be explained in
-the [Commands](#-commands) section.
+the [Commands](#triggered-images-commands) section.
 
 Example:
 
@@ -61,11 +65,24 @@ take a look at the [Trello board](https://trello.com/b/6o5lvHfk/sambot).
 Sambot's default command prefix is `$`, thus, all commands begin with the `$`
 symbol. Here is a list of the commands available, and what they do.
 
+#### Triggered response commands
+| Command       | Parameters            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|---------------|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `addpasta`    | `trigger`, `response` | Adds a user-triggerable copy-pasta to the guild. When any user types the trigger word `trigger` with any combination of punctuation and capitalization, sambot will send the message `response` to the channel. For example: `$addpasta hello "Hello yourself!"`. Every time a user types the word "hello",  sambot will reply with "Hello yourself!". Note that this trigger may not occur more than once per message, so if a user sends "hello hello hello", sambot will only respond once. **Also note that `response` is surrounded by double quotation marks in the command syntax. If you want to include double quotes in the actual response, use \" in place of " within the pair of outer double quotation marks.** |
+| `removepasta` | `trigger`             | TODO |
+
+
+#### Triggered images commands
+| Command       | Parameters       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|---------------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `addimage`    | `trigger`, `URL` | TODO |
+| `removeimage` | `trigger`        | TODO |
+
+#### Language filter commands
 | Command     | Parameters            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 |-------------|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `banword`   | `word`                | Bans the word `word` from the guild. If a user types `word`, with any combination of punctuation or capitalization involved,  the message is removed from the chat, and sambot sends a DM to the sender, which says "Don't be saying that stuff.". This command should be treated as a basic language filter.                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `unbanword` | `word`                | Unbans the word `word` from the guild. Basically undoes the `banword`  command, and allows users to once again use the word `word`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `addpasta`  | `trigger`, `response` | Adds a user-triggerable copy-pasta to the guild. When any user types the trigger word `trigger` with any combination of punctuation and capitalization, sambot will send the message `response` to the channel. For example: `$addpasta hello "Hello yourself!"`. Every time a user types the word "hello",  sambot will reply with "Hello yourself!". Note that this trigger may not occur more than once per message, so if a user sends "hello hello hello", sambot will only respond once. **Also note that `response` is surrounded by double quotation marks in the command syntax. If you want to include double quotes in the actual response, use \" in place of " within the pair of outer double quotation marks.** |
 
 ## 💬 Message Processing
 
