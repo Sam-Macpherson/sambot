@@ -14,6 +14,7 @@ server moderator (`manage_message` permissions).
 * [Database and Models](#-database-and-models)
 * [Migrations](#-migrations)
 * [Hosting Locally](#-hosting-locally)
+
 ##️ ☑️ Features
 
 #### Triggered responses 🗣️
