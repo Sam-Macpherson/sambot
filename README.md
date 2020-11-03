@@ -4,10 +4,10 @@ discord channel. Sambot offers a variety of commands to play around with as a
 server moderator (`manage_message` permissions).
 
 ## Table of Contents
-* [Features](#-features)
-    * [Triggered responses](#triggered-responses-📄)
-    * [Triggered images](#triggered-images-🖼)
-    * [Language filter](#language-filter-🤬)
+* [Features](#-features-)
+    * [Triggered responses](#triggered-responses-)
+    * [Triggered images](#triggered-images-)
+    * [Language filter](#language-filter-)
 * [Future Work](#-future-work)
 * [Commands](#-commands)
 * [Message Processing](#-message-processing)
