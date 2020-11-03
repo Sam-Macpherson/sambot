@@ -3,8 +3,8 @@ A discord bot which is used--at a high level--to drive user engagement in a
 discord channel. Sambot offers a variety of commands to play around with as a
 server moderator (`manage_message` permissions).
 
-## Table of Contents
-* [Features](#-features)
+## 📄 Table of Contents 
+* [Features](#--features)
     * [Triggered responses](#triggered-responses-)
     * [Triggered images](#triggered-images-)
     * [Language filter](#language-filter-)
@@ -14,28 +14,28 @@ server moderator (`manage_message` permissions).
 * [Database and Models](#-database-and-models)
 * [Migrations](#-migrations)
 * [Hosting Locally](#-hosting-locally)
-## ✔️ Features
+##️ ☑️ Features
 
-#### Triggered responses 📄
+#### Triggered responses 🗣️
 sambot parses user input searching for specific words, and responds using a 
 preset response. For example, if a user message contains the word "hello",
 sambot can be configured to respond with "Hello yourself!". The trigger words 
 and their corresponding responses are all manageable by users of a Discord guild
 with `manage_messages` permissions. The triggered responses can be locked with 
 cooldowns, to prevent spam. There are two types of cooldowns to choose from,
-which will each be explained in detail in the [Commands](Commands) section.
+which will each be explained in detail in the [Commands](#-commands) section.
 
 Example:
 
 ![Triggered responses](readme_images/triggered_response.png)
 
-#### ️Triggered images 🖼 
+#### Triggered images 📷
 Similarly to triggered responses, sambot examines user input searching for
 specific "trigger" words, and responds with an image, whose URL is specified by
 the creator of the trigger. Triggered images are manageable by users of a 
 Discord guild with `manage_messages` permissions. Triggered images also have
 cooldown support similarly to triggered responses, which will be explained in
-the [Commands](Commands) section.
+the [Commands](#-commands) section.
 
 Example:
 
@@ -49,7 +49,7 @@ banned in a guild and a user attempts to send a message that contains that word,
 sambot immediately deletes the offending message, and sends the user a warning 
 in a direct message. This language filter ignores punctuation found within 
 words, to make it harder to circumvent. For more information on banning words,
-see the [Commands](Commands) section. 
+see the [Commands](#-commands) section. 
 
 ## 📝 Future Work
 If you're interested in seeing what work is in the pipeline for `sambot`,
