@@ -1,7 +1,33 @@
 # sambot 
 A discord bot which is used--at a high level--to drive user engagement in a 
 discord channel. Sambot offers a variety of commands to play around with as a
-server moderator (manage_message permissions).
+server moderator (`manage_message` permissions).
+
+## Features
+
+#### Triggered responses
+sambot parses user input searching for specific words, and responds using a 
+preset response. For example, if a user message contains the word "hello",
+sambot can be configured to respond with "Hello yourself!". The trigger words 
+and their corresponding responses are all manageable by users of a Discord guild
+with `manage_messages` permissions.
+
+Example:
+
+![Triggered responses](readme_images/triggered_response.png)
+
+#### Triggered images
+Similarly to triggered responses, sambot examines user input searching for
+specific "trigger" words, and responds with an image, whose URL is specified by
+the creator of the trigger. Triggered images are manageable by users of a 
+Discord guild with `manage_messages` permissions.
+
+Example:
+
+![Triggered images](readme_images/oranges.png)
+## Future work
+If you're interested in seeing what work is in the pipeline for `sambot`,
+take a look at the [Trello board](https://trello.com/b/6o5lvHfk/sambot).
 
 ## Commands
 Sambot's default command prefix is `$`, thus, all commands begin with the `$`
