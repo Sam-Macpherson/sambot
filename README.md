@@ -54,7 +54,7 @@ banned in a guild and a user attempts to send a message that contains that word,
 sambot immediately deletes the offending message, and sends the user a warning 
 in a direct message. This language filter ignores punctuation found within 
 words, to make it harder to circumvent. For more information on banning words,
-see the [Commands](#-commands) section. 
+see the [Commands](#language-filter-commands) section. 
 
 ## 📝 Future Work
 If you're interested in seeing what work is in the pipeline for `sambot`,
