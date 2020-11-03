@@ -17,7 +17,7 @@ server moderator (`manage_message` permissions).
 
 ## ✅ Features
 
-#### Triggered responses 🗣️
+#### Triggered Responses 🗣
 sambot parses user input searching for specific words, and responds using a 
 preset response. For example, if a user message contains the word "hello",
 sambot can be configured to respond with "Hello yourself!". The trigger words 
@@ -69,7 +69,7 @@ symbol. Here is a list of the commands available, and what they do.
 
 ## 💬 Message Processing
 
-## 🗄️ Database and Models
+## 🗄 Database and Models 
 
 ## 📥 Migrations
 
