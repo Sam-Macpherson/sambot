@@ -4,16 +4,16 @@ discord channel. Sambot offers a variety of commands to play around with as a
 server moderator (`manage_message` permissions).
 
 ## Table of Contents
-* [Features](Features)
-    * [Triggered responses](Triggered responses)
-    * [Triggered images](Triggered images)
-    * [Language filter](Language filter)
-* [Future Work](Future Work)
-* [Commands](Commands)
-* [Message Processing](Message Processing)
-* [Database and Models](Database and Models)
-* [Migrations](Migrations)
-* [Hosting Locally](Hosting Locally)
+* [Features](#-features)
+    * [Triggered responses](#triggered-responses-📄)
+    * [Triggered images](#triggered-images-🖼)
+    * [Language filter](#language-filter-🤬)
+* [Future Work](#-future-work)
+* [Commands](#-commands)
+* [Message Processing](#-message-processing)
+* [Database and Models](#-database-and-models)
+* [Migrations](#-migrations)
+* [Hosting Locally](#-hosting-locally)
 ## ✔️ Features ️
 
 #### Triggered responses 📄
