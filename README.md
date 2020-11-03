@@ -4,7 +4,7 @@ discord channel. Sambot offers a variety of commands to play around with as a
 server moderator (`manage_message` permissions).
 
 ## Table of Contents
-* [Features](#-features-)
+* [Features](#-features)
     * [Triggered responses](#triggered-responses-)
     * [Triggered images](#triggered-images-)
     * [Language filter](#language-filter-)
@@ -14,7 +14,7 @@ server moderator (`manage_message` permissions).
 * [Database and Models](#-database-and-models)
 * [Migrations](#-migrations)
 * [Hosting Locally](#-hosting-locally)
-## ✔️ Features ️
+## ✔️ Features
 
 #### Triggered responses 📄
 sambot parses user input searching for specific words, and responds using a 
