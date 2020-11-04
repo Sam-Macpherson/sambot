@@ -47,30 +47,30 @@ async def on_message(message):
     print(f'Message received, author: {message.author}, '
           f'content: {message.content}, '
           f'cleaned content: {message.clean_content}')
-    user = user_cache.get(message.author.id)
-    user_created = False
-    if not user:
+    #user = user_cache.get(message.author.id)
+    #user_created = False
+    #if not user:
         # Cache miss.
-        print(f'Cache miss on user: {message.author.id}')
-        user, user_created = User.get_or_create(
-            discord_id=message.author.id,
-            defaults={
-                'display_name': message.author.name
-            }
-        )
-        user_cache.put(user.discord_id, user)
-    guild = guild_cache.get(message.guild.id)
-    guild_created = False
-    if not guild:
+    #    print(f'Cache miss on user: {message.author.id}')
+    user, user_created = User.get_or_create(
+        discord_id=message.author.id,
+        defaults={
+            'display_name': message.author.name
+        }
+    )
+    #user_cache.put(user.discord_id, user)
+    #guild = guild_cache.get(message.guild.id)
+    #guild_created = False
+    #if not guild:
         # Cache miss.
-        print(f'Cache miss on guild: {message.guild.id}')
-        guild, guild_created = Guild.get_or_create(
-            guild_id=message.guild.id,
-            defaults={
-                'guild_name': message.guild.name
-            }
-        )
-        guild_cache.put(guild.guild_id, guild)
+    #    print(f'Cache miss on guild: {message.guild.id}')
+    guild, guild_created = Guild.get_or_create(
+        guild_id=message.guild.id,
+        defaults={
+            'guild_name': message.guild.name
+        }
+    )
+    #guild_cache.put(guild.guild_id, guild)
     if user_created:
         print(f'User {message.author.id} has been added to the database.')
     elif user.display_name != message.author.name:
@@ -110,6 +110,7 @@ async def on_message(message):
                                             guild.triggered_text_cooldown))
                         .exists())
                     if user_cannot_trigger:
+                        print("Hello!")
                         break
                 response = TriggeredResponse.get_or_none(
                     guild=guild,
