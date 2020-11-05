@@ -15,6 +15,7 @@ class Guild(BaseModel):
     guild_name = CharField()
     cooldown_type = IntegerField(
         choices=COOLDOWN_TYPE_CHOICES,
+        default=PER_RESPONSE,
         help_text='The cooldown for a guild can either be set on a global '
                   'basis, where any user of the guild is allowed to trigger '
                   'any text or image response once per cooldown, or on a '

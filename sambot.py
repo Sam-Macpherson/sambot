@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 import discord
 from discord.ext import commands
+from discord.ext.commands import has_permissions
 
 from cogs import (
     BannedWordsCog,
@@ -20,7 +21,9 @@ from utilities.lru_cache import LRUCache
 
 description = '''sambot in Python.'''
 
-bot = commands.Bot(command_prefix='$', description=description)
+bot = commands.Bot(command_prefix='$',
+                   description=description,
+                   help_command=None)
 guild_cache = LRUCache(capacity=5)
 user_cache = LRUCache(capacity=10)
 
@@ -47,10 +50,10 @@ async def on_message(message):
     print(f'Message received, author: {message.author}, '
           f'content: {message.content}, '
           f'cleaned content: {message.clean_content}')
-    #user = user_cache.get(message.author.id)
-    #user_created = False
-    #if not user:
-        # Cache miss.
+    # user = user_cache.get(message.author.id)
+    # user_created = False
+    # if not user:
+    # Cache miss.
     #    print(f'Cache miss on user: {message.author.id}')
     user, user_created = User.get_or_create(
         discord_id=message.author.id,
@@ -58,11 +61,11 @@ async def on_message(message):
             'display_name': message.author.name
         }
     )
-    #user_cache.put(user.discord_id, user)
-    #guild = guild_cache.get(message.guild.id)
-    #guild_created = False
-    #if not guild:
-        # Cache miss.
+    # user_cache.put(user.discord_id, user)
+    # guild = guild_cache.get(message.guild.id)
+    # guild_created = False
+    # if not guild:
+    # Cache miss.
     #    print(f'Cache miss on guild: {message.guild.id}')
     guild, guild_created = Guild.get_or_create(
         guild_id=message.guild.id,
@@ -70,7 +73,7 @@ async def on_message(message):
             'guild_name': message.guild.name
         }
     )
-    #guild_cache.put(guild.guild_id, guild)
+    # guild_cache.put(guild.guild_id, guild)
     if user_created:
         print(f'User {message.author.id} has been added to the database.')
     elif user.display_name != message.author.name:
@@ -101,14 +104,14 @@ async def on_message(message):
                 if guild.cooldown_type == Guild.GLOBAL:
                     user_cannot_trigger = (
                         TriggeredResponseUsageTimestamp
-                        .select()
-                        .where(
+                            .select()
+                            .where(
                             TriggeredResponseUsageTimestamp.user_id ==
                             user.discord_id,
                             TriggeredResponseUsageTimestamp.timestamp >
                             now - timedelta(seconds=
                                             guild.triggered_text_cooldown))
-                        .exists())
+                            .exists())
                     if user_cannot_trigger:
                         print("Hello!")
                         break
@@ -157,6 +160,7 @@ async def on_message(message):
 
 
 @bot.command()
+@has_permissions(manage_messages=True)
 async def test(context):
     await context.channel.send('You talkin\' to me?')
     print(f'{context.message.author} tested me successfully.')
