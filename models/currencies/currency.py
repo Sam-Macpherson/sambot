@@ -10,3 +10,4 @@ class Currency(BaseModelWithUUID):
         backref='currencies'
     )
     name = CharField()
+    symbol = CharField(default='💵')
