@@ -24,8 +24,10 @@ from utilities.lru_cache import LRUCache
 
 description = '''sambot in Python.'''
 
+intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='$',
                    description=description,
+                   intents=intents,  # Camping is in-tents.
                    help_command=None)
 guild_cache = LRUCache(capacity=5)
 user_cache = LRUCache(capacity=10)
@@ -72,6 +74,7 @@ async def on_message(message):
         print(f'User {message.author.id} updated their username and is being'
               f'updated in the database.')
         user.display_name = message.author.name
+        user.save()
     words_in_message = message.content.lower().split(' ')
     first_word = words_in_message[0]
     punctuation_removal_translation = str.maketrans('', '', string.punctuation)
@@ -147,7 +150,6 @@ async def on_message(message):
                                 file=discord.File(data, 'image.jpg')
                             )
                             break
-    user.save()
     await bot.process_commands(message)
 
 

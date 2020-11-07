@@ -3,8 +3,9 @@ from discord.ext import commands
 from discord.ext.commands import has_permissions
 from peewee import DoesNotExist
 
-from models import Guild
-from models.currencies import Currency
+from models import Guild, base_model
+from models.currencies import Currency, CurrencyAmount
+from models.model_interfaces import UserModelInterface
 
 
 class CurrenciesCog(commands.Cog):
@@ -12,7 +13,7 @@ class CurrenciesCog(commands.Cog):
         self.bot = bot
 
     @commands.command(name='createcurrency')
-    @has_permissions(manage_guild=True)
+    @has_permissions(manage_messages=True)
     async def create_guild_currency(self, context,
                                     currency_name: str,
                                     symbol: str = None):
@@ -35,7 +36,7 @@ class CurrenciesCog(commands.Cog):
                                            f'this guild.')
 
     @commands.command(name='changecurrencyname')
-    @has_permissions(manage_guild=True)
+    @has_permissions(manage_messages=True)
     async def change_guild_currency_name(self, context,
                                          currency_name: str,
                                          new_currency_name: str = None):
@@ -60,7 +61,7 @@ class CurrenciesCog(commands.Cog):
                                        f'you want to change its name.')
 
     @commands.command(name='removecurrency')
-    @has_permissions(manage_guild=True)
+    @has_permissions(manage_messages=True)
     async def remove_guild_currency(self, context, currency_name: str):
         guild = Guild.get_or_none(guild_id=context.guild.id)
         if guild:
@@ -89,7 +90,7 @@ class CurrenciesCog(commands.Cog):
                                            f'this guild.')
 
     @commands.command(name='listcurrencies')
-    @has_permissions(manage_guild=True)
+    @has_permissions(manage_messages=True)
     async def list_guild_currencies(self, context):
         guild = Guild.get_or_none(guild_id=context.guild.id)
         if guild:
@@ -100,3 +101,72 @@ class CurrenciesCog(commands.Cog):
                                 value=currency.name,
                                 inline=False)
             await context.channel.send(embed=embed)
+
+    @commands.command(name='give')
+    async def give_currency(self, context,
+                            recipient: str,
+                            currency: str,
+                            amount: int):
+        if not recipient.startswith('<@!') and not recipient.startswith('<@'):
+            print(recipient)
+            await context.channel.send(f'You need to mention a user in order '
+                                       f'to give to them.')
+            return
+        guild = Guild.get_or_none(guild_id=context.guild.id)
+        if not guild:
+            return
+        # Mentions work like: <@!150816670493966336> so ignore extra characters.
+        recipient_id = recipient[2:-1]
+        if recipient.startswith('<@!'):
+            recipient_id = recipient_id[1:]
+        sender = UserModelInterface.get(
+            discord_id=context.message.author.id
+        )
+        receiver = UserModelInterface.get(discord_id=recipient_id)
+        if not receiver:
+            await context.channel.send(f'Looks like that user is not an '
+                                       f'active member of the guild. You '
+                                       f'can only give to active members.')
+            return
+        guild_currency = guild.currencies \
+            .where((Currency.name == currency) | (Currency.symbol == currency)) \
+            .get()
+        if not guild_currency:
+            await context.channel.send(f'That is not a currency.')
+            return
+        sender_currency = sender.wallet.get().currency_amounts \
+            .where(CurrencyAmount.currency == guild_currency)
+        sender_currency = \
+            sender_currency.get() if sender_currency.exists() else None
+        sender_has_infinite_money = context.channel \
+            .permissions_for(context.message.author) \
+            .manage_messages
+        receiver_has_infinite_money = context.channel \
+            .permissions_for(context.guild.get_member(int(recipient_id))) \
+            .manage_messages
+        if (not sender_has_infinite_money and
+                (not sender_currency or
+                 sender_currency.amount < amount)):
+            await context.channel.send(f'Insufficient funds.')
+            return
+        recipient_currency = receiver.wallet.get().currency_amounts \
+            .where(CurrencyAmount.currency == guild_currency)
+        recipient_currency = \
+            recipient_currency.get() if recipient_currency.exists() else None
+        if not receiver_has_infinite_money and not recipient_currency:
+            CurrencyAmount.create(
+                wallet=receiver.wallet.get(),
+                currency=guild_currency,
+                amount=amount
+            )
+        else:
+            with base_model.db.atomic():
+                if not receiver_has_infinite_money:
+                    recipient_currency.amount += amount
+                    recipient_currency.save()
+                if not sender_has_infinite_money:
+                    sender_currency.amount -= amount
+                    sender_currency.save()
+        await context.channel.send(f'Sent {amount} {currency} to '
+                                   f'{receiver.display_name}.')
+

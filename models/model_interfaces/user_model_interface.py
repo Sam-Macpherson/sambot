@@ -18,3 +18,11 @@ class UserModelInterface:
             user = UserBuilder.build(**kwargs)
             created = True
         return user, created
+
+    @staticmethod
+    def get(**kwargs):
+        try:
+            user = User.get(**kwargs)
+        except DoesNotExist:
+            user = None
+        return user
