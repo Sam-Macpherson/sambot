@@ -1,8 +1,8 @@
 from discord.ext import commands
 from discord.ext.commands import has_permissions
 
-from models import BannedWord
 from models.guild import Guild
+from models.banned_words import BannedWord
 
 
 class BannedWordsCog(commands.Cog):

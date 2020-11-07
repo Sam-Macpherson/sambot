@@ -4,15 +4,15 @@ A singleton class to store the environment variables.
 import os
 
 from dotenv import load_dotenv
-
 from models import (
-    User,
-    BannedWord,
     base_model,
-    TriggeredResponse,
+    User,
 )
+from models.banned_words import BannedWord
+from models.currencies import Currency, Wallet, CurrencyAmount
 from models.guild import Guild
-from models.triggered_responses.triggered_response_usage_timestamp import (
+from models.triggered_responses import (
+    TriggeredResponse,
     TriggeredResponseUsageTimestamp,
 )
 from utilities import truthy
@@ -20,13 +20,20 @@ from utilities import truthy
 
 class Environment:
     __instance = None
-    database_tables = [
-        User,
-        Guild,
-        BannedWord,
+    base_tables = [User, Guild]
+    banned_words_tables = [BannedWord]
+    triggered_responses_tables = [
         TriggeredResponse,
-        TriggeredResponseUsageTimestamp
+        TriggeredResponseUsageTimestamp,
     ]
+    currency_tables = [Currency, Wallet, CurrencyAmount]
+
+    database_tables = (
+            base_tables +
+            banned_words_tables +
+            triggered_responses_tables +
+            currency_tables
+    )
 
     @staticmethod
     def instance():

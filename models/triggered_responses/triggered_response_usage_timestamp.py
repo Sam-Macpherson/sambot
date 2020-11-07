@@ -2,7 +2,8 @@ from datetime import datetime
 
 from peewee import ForeignKeyField, DateTimeField
 
-from models import BaseModel, User, TriggeredResponse
+from models import BaseModel, User
+from models.triggered_responses import TriggeredResponse
 
 
 class TriggeredResponseUsageTimestamp(BaseModel):

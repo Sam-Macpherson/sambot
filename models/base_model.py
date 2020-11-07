@@ -1,3 +1,5 @@
+import uuid
+
 from peewee import *
 
 
@@ -11,3 +13,7 @@ class BaseModel(Model):
 
     class Meta:
         database = db
+
+
+class BaseModelWithUUID(BaseModel):
+    id = UUIDField(primary_key=True, default=uuid.uuid4)

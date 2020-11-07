@@ -9,13 +9,16 @@ from discord.ext.commands import has_permissions
 from cogs import (
     BannedWordsCog,
     TriggeredResponseCog,
+    CurrenciesCog,
 )
 from environment import Environment
-from models import User, TriggeredResponse, BannedWord
-from models.guild import Guild
-from models.triggered_responses.triggered_response_usage_timestamp import (
+from models import Guild
+from models.model_interfaces import UserModelInterface
+from models.triggered_responses import (
+    TriggeredResponse,
     TriggeredResponseUsageTimestamp,
 )
+from models.banned_words import BannedWord
 from utilities.decorators import debuggable
 from utilities.lru_cache import LRUCache
 
@@ -36,6 +39,7 @@ async def on_ready():
     print('=========')
     bot.add_cog(TriggeredResponseCog(bot))
     bot.add_cog(BannedWordsCog(bot))
+    bot.add_cog(CurrenciesCog(bot))
     Environment.instance().BOT_COMMANDS = [
         command.name for command in bot.commands
     ]
@@ -50,30 +54,18 @@ async def on_message(message):
     print(f'Message received, author: {message.author}, '
           f'content: {message.content}, '
           f'cleaned content: {message.clean_content}')
-    # user = user_cache.get(message.author.id)
-    # user_created = False
-    # if not user:
-    # Cache miss.
-    #    print(f'Cache miss on user: {message.author.id}')
-    user, user_created = User.get_or_create(
+    user, user_created = UserModelInterface.get_or_create(
         discord_id=message.author.id,
         defaults={
             'display_name': message.author.name
         }
     )
-    # user_cache.put(user.discord_id, user)
-    # guild = guild_cache.get(message.guild.id)
-    # guild_created = False
-    # if not guild:
-    # Cache miss.
-    #    print(f'Cache miss on guild: {message.guild.id}')
     guild, guild_created = Guild.get_or_create(
         guild_id=message.guild.id,
         defaults={
             'guild_name': message.guild.name
         }
     )
-    # guild_cache.put(guild.guild_id, guild)
     if user_created:
         print(f'User {message.author.id} has been added to the database.')
     elif user.display_name != message.author.name:
