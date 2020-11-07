@@ -1,12 +1,9 @@
-import io
-
 import aiohttp
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions
 
-from models import TriggeredResponse
-from models.guild import Guild
+from models import Guild, TriggeredResponse
 
 
 class TriggeredResponseCog(commands.Cog):

@@ -12,7 +12,7 @@ from models import (
     TriggeredResponse,
 )
 from models.guild import Guild
-from models.triggered_response_usage_timestamp import (
+from models.triggered_responses.triggered_response_usage_timestamp import (
     TriggeredResponseUsageTimestamp,
 )
 from utilities import truthy

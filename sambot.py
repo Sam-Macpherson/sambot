@@ -13,7 +13,7 @@ from cogs import (
 from environment import Environment
 from models import User, TriggeredResponse, BannedWord
 from models.guild import Guild
-from models.triggered_response_usage_timestamp import (
+from models.triggered_responses.triggered_response_usage_timestamp import (
     TriggeredResponseUsageTimestamp,
 )
 from utilities.decorators import debuggable

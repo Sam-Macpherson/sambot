@@ -1,5 +1,5 @@
 from .base_model import BaseModel
 from .user import User
-from .banned_word import BannedWord
 from .guild import Guild
-from .triggered_response import TriggeredResponse
+from models.banned_words import BannedWord
+from models.triggered_responses import TriggeredResponse
