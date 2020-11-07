@@ -3,7 +3,8 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions
 
-from models import Guild, TriggeredResponse
+from models import Guild
+from models.triggered_responses import TriggeredResponse
 
 
 class TriggeredResponseCog(commands.Cog):
