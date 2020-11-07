@@ -99,16 +99,17 @@ async def on_message(message):
                 if guild.cooldown_type == Guild.GLOBAL:
                     user_cannot_trigger = (
                         TriggeredResponseUsageTimestamp
-                            .select()
-                            .where(
-                            TriggeredResponseUsageTimestamp.user_id ==
-                            user.discord_id,
-                            TriggeredResponseUsageTimestamp.timestamp >
-                            now - timedelta(seconds=
-                                            guild.triggered_text_cooldown))
-                            .exists())
+                        .select()
+                        .where(
+                            (TriggeredResponseUsageTimestamp.triggered_response
+                             << guild.triggered_responses) &
+                            (TriggeredResponseUsageTimestamp.user_id
+                             == user.discord_id) &
+                            (TriggeredResponseUsageTimestamp.timestamp
+                             > now -
+                             timedelta(seconds=guild.triggered_text_cooldown)))
+                        .exists())
                     if user_cannot_trigger:
-                        print("Hello!")
                         break
                 response = TriggeredResponse.get_or_none(
                     guild=guild,
