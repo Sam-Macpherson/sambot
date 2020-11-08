@@ -1,3 +1,5 @@
+import io
+
 import aiohttp
 import discord
 from discord.ext import commands
@@ -102,16 +104,28 @@ class TriggeredResponseCog(commands.Cog):
         guild = Guild.get_or_none(
             guild_id=guild_id
         )
-        if guild:
-            triggered_response, _ = TriggeredResponse.get_or_create(
-                guild=guild,
-                trigger=trigger,
-                defaults={
-                    'type': TriggeredResponse.IMAGE,
-                    'image': None
-                }
-            )
-            async with aiohttp.ClientSession() as session:
+        if not guild:
+            return
+        image_headers = [
+            'image/png',
+            'image/jpg',
+            'image/jpeg',
+        ]
+        async with aiohttp.ClientSession() as session:
+            async with session.head(url) as head:
+                if head.headers.get('Content-Type', '') not in \
+                        image_headers:
+                    return await context.channel.send(
+                        f'Only PNG, JPG images are supported.'
+                    )
+                triggered_response, _ = TriggeredResponse.get_or_create(
+                    guild=guild,
+                    trigger=trigger,
+                    defaults={
+                        'type': TriggeredResponse.IMAGE,
+                        'image': None
+                    }
+                )
                 async with session.get(url) as resp:
                     if resp.status != 200:
                         return await context.message.channel.send(
@@ -120,8 +134,9 @@ class TriggeredResponseCog(commands.Cog):
                     image_bytes = await resp.read()
                     triggered_response.image = image_bytes
                     triggered_response.save()
+                    data = io.BytesIO(image_bytes)
                     await context.message.channel.send(
-                        file=discord.File(image_bytes, 'image.jpg')
+                        file=discord.File(data, 'image.jpg')
                     )
 
     @commands.command(name='removeimage')
