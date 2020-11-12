@@ -13,12 +13,11 @@ from cogs import (
 )
 from environment import Environment
 from models import Guild
-from models.model_interfaces import UserModelInterface
+from models.model_interfaces import UserModelInterface, BannedWordModelInterface
 from models.triggered_responses import (
     TriggeredResponse,
     TriggeredResponseUsageTimestamp,
 )
-from models.banned_words import BannedWord
 from utilities.decorators import debuggable
 from utilities.lru_cache import LRUCache
 
@@ -89,7 +88,10 @@ async def on_message(message):
             word = word.translate(punctuation_removal_translation)
             if word not in checked_words:
                 # Delete messages if they contain banned words.
-                banned_word = BannedWord.get_or_none(guild=guild, word=word)
+                banned_word = BannedWordModelInterface.get_or_none(
+                    guild=guild,
+                    word=word
+                )
                 if banned_word is not None:
                     await message.delete()
                     # Send a warning DM to the sender.
