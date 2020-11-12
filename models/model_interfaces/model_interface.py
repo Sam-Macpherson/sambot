@@ -13,6 +13,7 @@ from models.builders import (
     CurrencyBuilder,
 )
 from models.currencies import Currency, CurrencyAmount
+from models.exceptions import InsufficientFundsError
 from models.triggered_responses import (
     TriggeredResponse,
     TriggeredResponseUsageTimestamp,
@@ -79,7 +80,7 @@ class UserModelInterface(ModelInterface):
             currency=currency
         )
         if currency_amount is None or currency_amount.amount < amount:
-            raise ValueError
+            raise InsufficientFundsError()
         currency_amount.amount -= amount
         currency_amount.save()
 

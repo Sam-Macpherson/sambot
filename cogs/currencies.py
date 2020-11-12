@@ -1,8 +1,8 @@
 from discord import Embed
 from discord.ext import commands
 from discord.ext.commands import has_permissions
-from peewee import DoesNotExist
 
+from models.exceptions import InsufficientFundsError
 from models.model_interfaces import UserModelInterface, GuildModelInterface
 from models.model_interfaces.model_interface import CurrencyModelInterface
 
@@ -159,8 +159,8 @@ class CurrenciesCog(commands.Cog):
                     currency=guild_currency,
                     amount=amount,
                 )
-            except ValueError:
-                await context.channel.send(f'Insufficient funds.')
+            except InsufficientFundsError as exc:
+                await context.channel.send(exc.detail)
                 return
         if not receiver_has_infinite_money:
             UserModelInterface.receive(
