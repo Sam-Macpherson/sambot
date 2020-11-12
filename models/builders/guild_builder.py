@@ -1,9 +1,9 @@
-from models.banned_words import BannedWord
+from models import Guild
 from models.builders.model_builder import ModelBuilder
 
 
-class BannedWordsBuilder(ModelBuilder):
-    model = BannedWord
+class GuildBuilder(ModelBuilder):
+    model = Guild
 
     @classmethod
     def build(cls, **kwargs):

@@ -2,6 +2,10 @@
 
 from peewee import DoesNotExist
 
+from models import User, Guild
+from models.banned_words import BannedWord
+from models.builders import BannedWordBuilder, GuildBuilder, UserBuilder
+
 
 class ModelInterface:
     model = None
@@ -32,3 +36,20 @@ class ModelInterface:
     def delete_instance(cls, instance):
         assert isinstance(instance, cls.model)
         instance.delete_instance()
+
+
+class UserModelInterface(ModelInterface):
+    model = User
+    builder = UserBuilder
+
+
+class BannedWordModelInterface(ModelInterface):
+    model = BannedWord
+    builder = BannedWordBuilder
+
+
+class GuildModelInterface(ModelInterface):
+    model = Guild
+    builder = GuildBuilder
+    GLOBAL = Guild.GLOBAL
+    PER_RESPONSE = Guild.PER_RESPONSE

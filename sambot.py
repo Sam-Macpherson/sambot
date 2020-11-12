@@ -12,8 +12,11 @@ from cogs import (
     CurrenciesCog,
 )
 from environment import Environment
-from models import Guild
-from models.model_interfaces import UserModelInterface, BannedWordModelInterface
+from models.model_interfaces import (
+    UserModelInterface,
+    BannedWordModelInterface,
+    GuildModelInterface,
+)
 from models.triggered_responses import (
     TriggeredResponse,
     TriggeredResponseUsageTimestamp,
@@ -61,7 +64,7 @@ async def on_message(message):
             'display_name': message.author.name
         }
     )
-    guild, guild_created = Guild.get_or_create(
+    guild, guild_created = GuildModelInterface.get_or_create(
         guild_id=message.guild.id,
         defaults={
             'guild_name': message.guild.name
@@ -98,7 +101,7 @@ async def on_message(message):
                     await message.author.send(f'Don\'t be saying that stuff.')
                     break
                 now = datetime.now()
-                if guild.cooldown_type == Guild.GLOBAL:
+                if guild.cooldown_type == GuildModelInterface.GLOBAL:
                     user_cannot_trigger = (
                         TriggeredResponseUsageTimestamp
                         .select()
@@ -138,7 +141,7 @@ async def on_message(message):
                             # Only 1 triggered response per message.
                             break
                     elif response.type == TriggeredResponse.IMAGE:
-                        if guild.cooldown_type == Guild.GLOBAL:
+                        if guild.cooldown_type == GuildModelInterface.GLOBAL:
                             cooldown = guild.triggered_text_cooldown
                         else:
                             cooldown = guild.triggered_image_cooldown
