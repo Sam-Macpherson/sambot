@@ -17,10 +17,6 @@ from models.model_interfaces import (
     BannedWordModelInterface,
     GuildModelInterface, TriggeredResponseModelInterface,
 )
-from models.triggered_responses import (
-    TriggeredResponse,
-    TriggeredResponseUsageTimestamp,
-)
 from utilities.decorators import debuggable
 from utilities.lru_cache import LRUCache
 
@@ -102,7 +98,7 @@ async def on_message(message):
                 await message.author.send(f'Don\'t be saying that stuff.')
                 break
             checked_words.append(word)
-            response = TriggeredResponseModelInterface.get_or_none(
+            response = TriggeredResponseModelInterface.get_allowed_or_none(
                 user=user,
                 guild=guild,
                 trigger=word,

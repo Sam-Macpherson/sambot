@@ -74,10 +74,15 @@ class TriggeredResponseModelInterface(UserModelInterface):
     IMAGE = TriggeredResponse.IMAGE
 
     @classmethod
-    def get_or_none(cls, user: User = None,
-                    guild: Guild = None,
-                    trigger: str = None,
-                    **kwargs):
+    def get_allowed_or_none(cls, user: User = None,
+                            guild: Guild = None,
+                            trigger: str = None,
+                            **kwargs):
+        """Works the same way as get_or_none, except that it does not return
+        results that the given user is not allowed to use, based on the
+        guild's cooldown type and relevant cooldown, and the user's
+        usage timestamps.
+        """
         assert isinstance(user, User)
         assert isinstance(guild, Guild)
         assert isinstance(trigger, str)
