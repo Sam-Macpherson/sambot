@@ -40,12 +40,12 @@ class ModelInterface:
         return record
 
     @classmethod
-    def save_instance(cls, instance: model):
+    def save_instance(cls, instance):
         assert isinstance(instance, cls.model)
         instance.save()
 
     @classmethod
-    def delete_instance(cls, instance: model):
+    def delete_instance(cls, instance):
         assert isinstance(instance, cls.model)
         instance.delete_instance()
 
