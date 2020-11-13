@@ -149,9 +149,7 @@ else:
 
 
 def twitch_worker():
-    new_loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(new_loop)
-    new_loop.run_until_complete(twitch_bot.run())
+    twitch_bot.run()
     return
 
 
