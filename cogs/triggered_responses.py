@@ -19,11 +19,12 @@ class TriggeredResponseCog(commands.Cog):
         self.bot = bot
 
     @staticmethod
-    async def _remove_triggered_response(context, trigger: str):
+    async def _remove_triggered_response(context, trigger: str, type: int):
         guild = GuildModelInterface.get_or_none(guild_id=context.guild.id)
         if guild is None:
             return
         triggered_response = TriggeredResponseModelInterface.get_or_none(
+            type=type,
             guild=guild,
             trigger=trigger
         )
@@ -102,7 +103,11 @@ class TriggeredResponseCog(commands.Cog):
     @commands.command(name='removepasta')
     @has_permissions(manage_messages=True)
     async def remove_triggered_text(self, context, trigger: str):
-        await self._remove_triggered_response(context, trigger)
+        await self._remove_triggered_response(
+            context,
+            trigger,
+            TriggeredResponseModelInterface.TEXT,
+        )
 
     @commands.command(name='pastadelay')
     @has_permissions(manage_messages=True)
@@ -156,7 +161,11 @@ class TriggeredResponseCog(commands.Cog):
     @commands.command(name='removeimage')
     @has_permissions(manage_messages=True)
     async def remove_triggered_image(self, context, trigger: str):
-        await self._remove_triggered_response(context, trigger)
+        await self._remove_triggered_response(
+            context,
+            trigger,
+            TriggeredResponseModelInterface.IMAGE,
+        )
 
     @commands.command(name='imagedelay')
     @has_permissions(manage_messages=True)
