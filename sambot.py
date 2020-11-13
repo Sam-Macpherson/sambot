@@ -12,13 +12,11 @@ from cogs import (
     CurrenciesCog,
 )
 from environment import Environment
-from models import Guild
-from models.model_interfaces import UserModelInterface
-from models.triggered_responses import (
-    TriggeredResponse,
-    TriggeredResponseUsageTimestamp,
+from models.model_interfaces import (
+    UserModelInterface,
+    BannedWordModelInterface,
+    GuildModelInterface, TriggeredResponseModelInterface,
 )
-from models.banned_words import BannedWord
 from utilities.decorators import debuggable
 from utilities.lru_cache import LRUCache
 
@@ -62,7 +60,7 @@ async def on_message(message):
             'display_name': message.author.name
         }
     )
-    guild, guild_created = Guild.get_or_create(
+    guild, guild_created = GuildModelInterface.get_or_create(
         guild_id=message.guild.id,
         defaults={
             'guild_name': message.guild.name
@@ -74,7 +72,7 @@ async def on_message(message):
         print(f'User {message.author.id} updated their username and is being'
               f'updated in the database.')
         user.display_name = message.author.name
-        user.save()
+        UserModelInterface.save_instance(user)
     words_in_message = message.content.lower().split(' ')
     first_word = words_in_message[0]
     punctuation_removal_translation = str.maketrans('', '', string.punctuation)
@@ -87,70 +85,36 @@ async def on_message(message):
         for word in words_in_message:
             # Remove all punctuation and symbols.
             word = word.translate(punctuation_removal_translation)
-            if word not in checked_words:
-                # Delete messages if they contain banned words.
-                banned_word = BannedWord.get_or_none(guild=guild, word=word)
-                if banned_word is not None:
-                    await message.delete()
-                    # Send a warning DM to the sender.
-                    await message.author.send(f'Don\'t be saying that stuff.')
-                    break
-                now = datetime.now()
-                if guild.cooldown_type == Guild.GLOBAL:
-                    user_cannot_trigger = (
-                        TriggeredResponseUsageTimestamp
-                        .select()
-                        .where(
-                            (TriggeredResponseUsageTimestamp.triggered_response
-                             << guild.triggered_responses) &
-                            (TriggeredResponseUsageTimestamp.user_id
-                             == user.discord_id) &
-                            (TriggeredResponseUsageTimestamp.timestamp
-                             > now -
-                             timedelta(seconds=guild.triggered_text_cooldown)))
-                        .exists())
-                    if user_cannot_trigger:
-                        break
-                response = TriggeredResponse.get_or_none(
-                    guild=guild,
-                    trigger=word
-                )
-                checked_words.append(word)
-                if response is not None:
-                    now = datetime.now()
-                    last_used, timestamp_created = \
-                        TriggeredResponseUsageTimestamp.get_or_create(
-                            user=user,
-                            triggered_response=response
-                        )
-                    if response.type == TriggeredResponse.TEXT:
-                        if (timestamp_created or last_used.timestamp +
-                                timedelta(
-                                    seconds=
-                                    guild.triggered_text_cooldown) <= now):
-                            last_used.timestamp = now
-                            last_used.save()
-                            print(f'{message.author.id} triggered the "{word}" '
-                                  f'triggered response.')
-                            await message.channel.send(response.response)
-                            # Only 1 triggered response per message.
-                            break
-                    elif response.type == TriggeredResponse.IMAGE:
-                        if guild.cooldown_type == Guild.GLOBAL:
-                            cooldown = guild.triggered_text_cooldown
-                        else:
-                            cooldown = guild.triggered_image_cooldown
-                        if (timestamp_created or last_used.timestamp +
-                                timedelta(seconds=cooldown) <= now):
-                            last_used.timestamp = now
-                            last_used.save()
-                            print(f'{message.author.id} triggered the "{word}" '
-                                  f'triggered image.')
-                            data = io.BytesIO(response.image)
-                            await message.channel.send(
-                                file=discord.File(data, 'image.jpg')
-                            )
-                            break
+            if word in checked_words:
+                continue
+            # Delete messages if they contain banned words.
+            banned_word = BannedWordModelInterface.get_or_none(
+                guild=guild,
+                word=word
+            )
+            if banned_word is not None:
+                await message.delete()
+                # Send a warning DM to the sender.
+                await message.author.send(f'Don\'t be saying that stuff.')
+                break
+            checked_words.append(word)
+            response = TriggeredResponseModelInterface.get_allowed_or_none(
+                user=user,
+                guild=guild,
+                trigger=word,
+            )
+            if response is not None:
+                print(f'{message.author.id} triggered the "{word}" '
+                      f'triggered response (type {response.type}).')
+                if response.type == TriggeredResponseModelInterface.TEXT:
+                    await message.channel.send(response.response)
+                else:
+                    data = io.BytesIO(response.image)
+                    await message.channel.send(
+                        file=discord.File(data, 'image.jpg')
+                    )
+                # Only 1 triggered response per message.
+                break
     await bot.process_commands(message)
 
 

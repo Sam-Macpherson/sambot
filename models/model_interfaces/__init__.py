@@ -1,1 +1,6 @@
-from models.model_interfaces.user_model_interface import UserModelInterface
+from models.model_interfaces.model_interface import (
+    BannedWordModelInterface,
+    GuildModelInterface,
+    UserModelInterface,
+    TriggeredResponseModelInterface,
+)

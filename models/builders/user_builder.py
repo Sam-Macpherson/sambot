@@ -1,11 +1,13 @@
 from models import User
+from models.builders.model_builder import ModelBuilder
 from models.currencies import Wallet
 
 
-class UserBuilder:
+class UserBuilder(ModelBuilder):
+    model = User
 
-    @staticmethod
-    def build(**kwargs):
-        user = User.create(**kwargs)
+    @classmethod
+    def build(cls, **kwargs):
+        user = super().build(**kwargs)
         Wallet.create(user=user)
         return user
