@@ -59,6 +59,8 @@ async def on_message(message):
     print(f'Message received, author: {message.author}, '
           f'content: {message.content}, '
           f'cleaned content: {message.clean_content}')
+    print(message.author.id)
+    print(message.guild.id)
     user, user_created = UserModelInterface.get_or_create(
         discord_id=message.author.id,
         defaults={
