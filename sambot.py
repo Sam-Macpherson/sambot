@@ -1,12 +1,11 @@
 import io
 import string
-from datetime import datetime, timedelta
 
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions
 
-from cogs import (
+from discord_src.cogs import (
     BannedWordsCog,
     TriggeredResponseCog,
     CurrenciesCog,

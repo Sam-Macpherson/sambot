@@ -1,0 +1,3 @@
+from discord_src.cogs.triggered_responses import TriggeredResponseCog
+from discord_src.cogs.banned_words import BannedWordsCog
+from discord_src.cogs.currencies import CurrenciesCog
