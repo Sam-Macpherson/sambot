@@ -1,10 +1,14 @@
 import io
 import string
+import threading
+import asyncio
 
 import discord
-from discord.ext import commands
+from discord.ext import commands as discord_commands
+from twitchio.ext import commands as twitch_commands
 from discord.ext.commands import has_permissions
 
+from twitch_src import Sambot
 from discord_src.cogs import (
     BannedWordsCog,
     TriggeredResponseCog,
@@ -22,33 +26,35 @@ from utilities.lru_cache import LRUCache
 description = '''sambot in Python.'''
 
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='$',
-                   description=description,
-                   intents=intents,  # Camping is in-tents.
-                   help_command=None)
+discord_bot = discord_commands.Bot(command_prefix='$',
+                                   description=description,
+                                   intents=intents,  # Camping is in-tents.
+                                   help_command=None)
+twitch_bot = None
+
 guild_cache = LRUCache(capacity=5)
 user_cache = LRUCache(capacity=10)
 
 
-@bot.event
+@discord_bot.event
 async def on_ready():
-    print(f'Logged in as {bot.user.name}, id: {bot.user.id}')
+    print(f'Logged in discord bot as {discord_bot.user.name}, id: {discord_bot.user.id}')
     print(f'Debug mode is '
           f'{"ENABLED" if Environment.instance().DEBUG else "DISABLED"}.')
     print('=========')
-    bot.add_cog(TriggeredResponseCog(bot))
-    bot.add_cog(BannedWordsCog(bot))
-    bot.add_cog(CurrenciesCog(bot))
+    discord_bot.add_cog(TriggeredResponseCog(discord_bot))
+    discord_bot.add_cog(BannedWordsCog(discord_bot))
+    discord_bot.add_cog(CurrenciesCog(discord_bot))
     Environment.instance().BOT_COMMANDS = [
-        command.name for command in bot.commands
+        command.name for command in discord_bot.commands
     ]
 
 
-@bot.event
+@discord_bot.event
 @debuggable
 async def on_message(message):
     # We don't want the bot replying to itself.
-    if message.author == bot.user:
+    if message.author == discord_bot.user:
         return
     print(f'Message received, author: {message.author}, '
           f'content: {message.content}, '
@@ -120,17 +126,17 @@ async def on_message(message):
                     )
                 # Only 1 triggered response per message.
                 break
-    await bot.process_commands(message)
+    await discord_bot.process_commands(message)
 
 
-@bot.command()
+@discord_bot.command()
 @has_permissions(manage_messages=True)
 async def test(context):
     await context.channel.send('You talkin\' to me?')
     print(f'{context.message.author} tested me successfully.')
 
 
-@bot.command()
+@discord_bot.command()
 async def kill(context):
     """This can only be run by the bot owner."""
     if context.message.author.id == Environment.instance().OWNER_USER_ID:
@@ -139,8 +145,24 @@ async def kill(context):
     else:
         print(f'{context.message.author} (not owner) tried to kill the bot.')
 
+if Environment.instance().TWITCH_TOKEN is None:
+    print('Specify the TWITCH_TOKEN in the .env file.')
+else:
+    twitch_bot = Sambot(
+        asyncio.new_event_loop(),
+        irc_token=Environment.instance().TWITCH_TOKEN,
+    )
 
-if Environment.instance().TOKEN is None:
+
+def twitch_worker():
+    new_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(new_loop)
+    new_loop.run_until_complete(twitch_bot.run())
+    return
+
+
+threading.Thread(target=twitch_worker).start()
+if Environment.instance().DISCORD_TOKEN is None:
     print('Specify the DISCORD_TOKEN in the .env file.')
 else:
-    bot.run(Environment.instance().TOKEN)
+    discord_bot.run(Environment.instance().DISCORD_TOKEN)
