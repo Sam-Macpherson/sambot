@@ -61,7 +61,8 @@ class Environment:
                     integer_variables[var] = int(var_entry)
 
             # Set DEBUG=True in the .env file to enable debug mode.
-            self.TOKEN = os.getenv('DISCORD_TOKEN')
+            self.DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+            self.TWITCH_TOKEN = os.getenv('TWITCH_TOKEN')
             self.DEBUG = truthy(os.getenv('DEBUG'))
             self.DEBUG_CHANNEL_ID = integer_variables['DEBUG_CHANNEL_ID']
             self.OWNER_USER_ID = integer_variables['OWNER_USER_ID']
