@@ -145,6 +145,12 @@ async def kill(context):
     else:
         print(f'{context.message.author} (not owner) tried to kill the bot.')
 
+
+def twitch_worker():
+    twitch_bot.run()
+    return
+
+
 if Environment.instance().TWITCH_TOKEN is None:
     print('Specify the TWITCH_TOKEN in the .env file.')
 else:
@@ -152,14 +158,9 @@ else:
         asyncio.new_event_loop(),
         irc_token=Environment.instance().TWITCH_TOKEN,
     )
+    threading.Thread(target=twitch_worker).start()
 
 
-def twitch_worker():
-    twitch_bot.run()
-    return
-
-
-threading.Thread(target=twitch_worker).start()
 if Environment.instance().DISCORD_TOKEN is None:
     print('Specify the DISCORD_TOKEN in the .env file.')
 else:
