@@ -66,6 +66,11 @@ async def on_message(message):
             'guild_name': message.guild.name
         }
     )
+    if not guild_created and guild.guild_name != message.guild.name:
+        print(f'Guild {guild.guild_id} has had its name updated and is being '
+              f'updated in the database.')
+        guild.guild_name = message.guild.name
+        GuildModelInterface.save_instance(guild)
     if user_created:
         print(f'User {message.author.id} has been added to the database.')
     elif user.display_name != message.author.name:
