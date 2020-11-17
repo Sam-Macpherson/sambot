@@ -55,7 +55,7 @@ async def on_message(message):
           f'content: {message.content}, '
           f'cleaned content: {message.clean_content}')
     user, user_created = UserModelInterface.get_or_create(
-        discord_id=message.author.id,
+        id=message.author.id,
         defaults={
             'display_name': message.author.name
         }

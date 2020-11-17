@@ -1,12 +1,13 @@
 from peewee import ForeignKeyField
 
-from models import BaseModelWithUUID, User
+from models import BaseModelWithUUID
+from models.profiles import DiscordProfile
 
 
 class Wallet(BaseModelWithUUID):
     user = ForeignKeyField(
-        User,
-        User.discord_id,
+        DiscordProfile,
+        DiscordProfile.id,
         backref='wallet',
         unique=True,
     )

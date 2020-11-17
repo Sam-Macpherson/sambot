@@ -1,10 +1,10 @@
-from models import User
+from models.profiles import DiscordProfile
 from models.builders.model_builder import ModelBuilder
 from models.currencies import Wallet
 
 
-class UserBuilder(ModelBuilder):
-    model = User
+class DiscordProfileBuilder(ModelBuilder):
+    model = DiscordProfile
 
     @classmethod
     def build(cls, **kwargs):

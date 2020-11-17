@@ -3,17 +3,18 @@ from datetime import datetime, timedelta
 
 from peewee import DoesNotExist
 
-from models import User, Guild
+from models import Guild
 from models.banned_words import BannedWord
 from models.builders import (
     BannedWordBuilder,
     GuildBuilder,
-    UserBuilder,
+    DiscordProfileBuilder,
     TriggeredResponseBuilder,
     CurrencyBuilder,
 )
 from models.currencies import Currency, CurrencyAmount
 from models.exceptions import InsufficientFundsError
+from models.profiles import DiscordProfile
 from models.triggered_responses import (
     TriggeredResponse,
     TriggeredResponseUsageTimestamp,
@@ -57,12 +58,13 @@ class ModelInterface:
 
 
 class UserModelInterface(ModelInterface):
-    model = User
-    builder = UserBuilder
+    model = DiscordProfile
+    builder = DiscordProfileBuilder
 
     @classmethod
-    def get_currency_amount_or_none(cls, user: User, currency: Currency):
-        assert isinstance(user, User)
+    def get_currency_amount_or_none(cls, user: DiscordProfile,
+                                    currency: Currency):
+        assert isinstance(user, DiscordProfile)
         assert isinstance(currency, Currency)
         currency_query = user.wallet.get().currency_amounts\
             .where(currency == currency)
@@ -71,8 +73,8 @@ class UserModelInterface(ModelInterface):
         return None
 
     @classmethod
-    def pay(cls, user: User, currency: Currency, amount: int):
-        assert isinstance(user, User)
+    def pay(cls, user: DiscordProfile, currency: Currency, amount: int):
+        assert isinstance(user, DiscordProfile)
         assert isinstance(currency, Currency)
         assert isinstance(amount, int)
         currency_amount = cls.get_currency_amount_or_none(
@@ -85,8 +87,8 @@ class UserModelInterface(ModelInterface):
         currency_amount.save()
 
     @classmethod
-    def receive(cls, user: User, currency: Currency, amount: int):
-        assert isinstance(user, User)
+    def receive(cls, user: DiscordProfile, currency: Currency, amount: int):
+        assert isinstance(user, DiscordProfile)
         assert isinstance(currency, Currency)
         assert isinstance(amount, int)
         currency_amount = cls.get_currency_amount_or_none(
@@ -152,7 +154,7 @@ class TriggeredResponseModelInterface(ModelInterface):
     IMAGE = TriggeredResponse.IMAGE
 
     @classmethod
-    def get_allowed_or_none(cls, user: User = None,
+    def get_allowed_or_none(cls, user: DiscordProfile = None,
                             guild: Guild = None,
                             trigger: str = None,
                             **kwargs):
@@ -161,7 +163,7 @@ class TriggeredResponseModelInterface(ModelInterface):
         guild's cooldown type and relevant cooldown, and the user's
         usage timestamps.
         """
-        assert isinstance(user, User)
+        assert isinstance(user, DiscordProfile)
         assert isinstance(guild, Guild)
         assert isinstance(trigger, str)
         now = datetime.now()
