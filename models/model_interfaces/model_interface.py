@@ -12,6 +12,7 @@ from models.builders import (
     TriggeredResponseBuilder,
     CurrencyBuilder,
 )
+from models.builders.user_builder import UserBuilder
 from models.currencies import Currency, CurrencyAmount
 from models.exceptions import InsufficientFundsError
 from models.profiles import DiscordProfile
@@ -55,6 +56,11 @@ class ModelInterface:
     def delete_instance(cls, instance):
         assert isinstance(instance, cls.model)
         instance.delete_instance()
+
+
+class DiscordProfileModelInterface(ModelInterface):
+    model = DiscordProfile
+    builder = DiscordProfileBuilder
 
 
 class UserModelInterface(ModelInterface):
@@ -154,7 +160,7 @@ class TriggeredResponseModelInterface(ModelInterface):
     IMAGE = TriggeredResponse.IMAGE
 
     @classmethod
-    def get_allowed_or_none(cls, user: DiscordProfile = None,
+    def get_allowed_or_none(cls, user: User = None,
                             guild: Guild = None,
                             trigger: str = None,
                             **kwargs):
@@ -163,7 +169,7 @@ class TriggeredResponseModelInterface(ModelInterface):
         guild's cooldown type and relevant cooldown, and the user's
         usage timestamps.
         """
-        assert isinstance(user, DiscordProfile)
+        assert isinstance(user, User)
         assert isinstance(guild, Guild)
         assert isinstance(trigger, str)
         now = datetime.now()

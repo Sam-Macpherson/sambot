@@ -1,5 +1,4 @@
 from models import User
-from models.profiles import DiscordProfile
 from models.builders.model_builder import ModelBuilder
 from models.currencies import Wallet
 
