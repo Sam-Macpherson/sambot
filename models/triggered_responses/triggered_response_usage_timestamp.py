@@ -8,10 +8,10 @@ from models.triggered_responses import TriggeredResponse
 
 
 class TriggeredResponseUsageTimestamp(BaseModel):
-    discord_profile = ForeignKeyField(
-        DiscordProfile,
-        backref='triggered_response_usage_timestamps'
-    )
+    # discord_profile = ForeignKeyField(
+    #     DiscordProfile,
+    #     backref='triggered_response_usage_timestamps'
+    # )
     user = ForeignKeyField(
         User,
         field=User.id,
