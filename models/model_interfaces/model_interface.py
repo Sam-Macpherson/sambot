@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from peewee import DoesNotExist
 
-from models import Guild
+from models import Guild, User
 from models.banned_words import BannedWord
 from models.builders import (
     BannedWordBuilder,
@@ -58,8 +58,8 @@ class ModelInterface:
 
 
 class UserModelInterface(ModelInterface):
-    model = DiscordProfile
-    builder = DiscordProfileBuilder
+    model = User
+    builder = UserBuilder
 
     @classmethod
     def get_currency_amount_or_none(cls, user: DiscordProfile,
