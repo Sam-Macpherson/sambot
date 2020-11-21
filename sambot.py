@@ -13,10 +13,10 @@ from cogs import (
 )
 from environment import Environment
 from models.model_interfaces import (
-    UserModelInterface,
     BannedWordModelInterface,
     GuildModelInterface, TriggeredResponseModelInterface,
 )
+from models.model_interfaces.model_interface import DiscordProfileModelInterface
 from utilities.decorators import debuggable
 from utilities.lru_cache import LRUCache
 
@@ -54,8 +54,8 @@ async def on_message(message):
     print(f'Message received, author: {message.author}, '
           f'content: {message.content}, '
           f'cleaned content: {message.clean_content}')
-    user, user_created = UserModelInterface.get_or_create(
-        discord_id=message.author.id,
+    profile, profile_created = DiscordProfileModelInterface.get_or_create(
+        id=message.author.id,
         defaults={
             'display_name': message.author.name
         }
@@ -71,13 +71,14 @@ async def on_message(message):
               f'updated in the database.')
         guild.guild_name = message.guild.name
         GuildModelInterface.save_instance(guild)
-    if user_created:
-        print(f'User {message.author.id} has been added to the database.')
-    elif user.display_name != message.author.name:
+    if profile_created:
+        print(f'Discord profile {message.author.id} has been added '
+              f'to the database.')
+    elif profile.display_name != message.author.name:
         print(f'User {message.author.id} updated their username and is being'
               f'updated in the database.')
-        user.display_name = message.author.name
-        UserModelInterface.save_instance(user)
+        profile.display_name = message.author.name
+        DiscordProfileModelInterface.save_instance(profile)
     words_in_message = message.content.lower().split(' ')
     first_word = words_in_message[0]
     punctuation_removal_translation = str.maketrans('', '', string.punctuation)
@@ -104,7 +105,7 @@ async def on_message(message):
                 break
             checked_words.append(word)
             response = TriggeredResponseModelInterface.get_allowed_or_none(
-                user=user,
+                user=profile.user,
                 guild=guild,
                 trigger=word,
             )

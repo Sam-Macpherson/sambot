@@ -4,7 +4,10 @@ from discord.ext.commands import has_permissions
 
 from models.exceptions import InsufficientFundsError
 from models.model_interfaces import UserModelInterface, GuildModelInterface
-from models.model_interfaces.model_interface import CurrencyModelInterface
+from models.model_interfaces.model_interface import (
+    CurrencyModelInterface,
+    DiscordProfileModelInterface,
+)
 
 
 class CurrenciesCog(commands.Cog):
@@ -127,12 +130,24 @@ class CurrenciesCog(commands.Cog):
         recipient_id = recipient[2:-1]
         if recipient.startswith('<@!'):
             recipient_id = recipient_id[1:]
-        sender = UserModelInterface.get_or_none(
-            discord_id=context.message.author.id
+        sender_profile = DiscordProfileModelInterface.get_or_none(
+            id=context.message.author.id
         )
-        receiver = UserModelInterface.get_or_none(
-            discord_id=recipient_id
+        if sender_profile is not None:
+            sender = sender_profile.user
+        else:
+            print(f'Something went wrong and the sender DiscordProfile has '
+                  f'no user.')
+            return
+        receiver = DiscordProfileModelInterface.get_or_none(
+            id=recipient_id
         )
+        if receiver is not None:
+            receiver = receiver.user
+        else:
+            print(f'Something went wrong and the receiver DiscordProfile has '
+                  f'no user.')
+            return
         if receiver is None:
             await context.channel.send(f'Looks like that user is not an '
                                        f'active member of the guild. You '

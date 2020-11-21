@@ -3,17 +3,19 @@ from datetime import datetime, timedelta
 
 from peewee import DoesNotExist
 
-from models import User, Guild
+from models import Guild, User
 from models.banned_words import BannedWord
 from models.builders import (
     BannedWordBuilder,
     GuildBuilder,
-    UserBuilder,
+    DiscordProfileBuilder,
     TriggeredResponseBuilder,
     CurrencyBuilder,
 )
+from models.builders.user_builder import UserBuilder
 from models.currencies import Currency, CurrencyAmount
 from models.exceptions import InsufficientFundsError
+from models.profiles import DiscordProfile
 from models.triggered_responses import (
     TriggeredResponse,
     TriggeredResponseUsageTimestamp,
@@ -56,13 +58,19 @@ class ModelInterface:
         instance.delete_instance()
 
 
+class DiscordProfileModelInterface(ModelInterface):
+    model = DiscordProfile
+    builder = DiscordProfileBuilder
+
+
 class UserModelInterface(ModelInterface):
     model = User
     builder = UserBuilder
 
     @classmethod
-    def get_currency_amount_or_none(cls, user: User, currency: Currency):
-        assert isinstance(user, User)
+    def get_currency_amount_or_none(cls, user: DiscordProfile,
+                                    currency: Currency):
+        assert isinstance(user, DiscordProfile)
         assert isinstance(currency, Currency)
         currency_query = user.wallet.get().currency_amounts\
             .where(currency == currency)
@@ -71,8 +79,8 @@ class UserModelInterface(ModelInterface):
         return None
 
     @classmethod
-    def pay(cls, user: User, currency: Currency, amount: int):
-        assert isinstance(user, User)
+    def pay(cls, user: DiscordProfile, currency: Currency, amount: int):
+        assert isinstance(user, DiscordProfile)
         assert isinstance(currency, Currency)
         assert isinstance(amount, int)
         currency_amount = cls.get_currency_amount_or_none(
@@ -85,8 +93,8 @@ class UserModelInterface(ModelInterface):
         currency_amount.save()
 
     @classmethod
-    def receive(cls, user: User, currency: Currency, amount: int):
-        assert isinstance(user, User)
+    def receive(cls, user: DiscordProfile, currency: Currency, amount: int):
+        assert isinstance(user, DiscordProfile)
         assert isinstance(currency, Currency)
         assert isinstance(amount, int)
         currency_amount = cls.get_currency_amount_or_none(

@@ -1,8 +1,5 @@
-from peewee import *
-
-from . import BaseModel
+from models import BaseModelWithUUID
 
 
-class User(BaseModel):
-    discord_id = IntegerField(primary_key=True)
-    display_name = CharField()
+class User(BaseModelWithUUID):
+    pass
