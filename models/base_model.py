@@ -3,10 +3,11 @@ import uuid
 from peewee import *
 
 
+# db = SqliteDatabase('sambot.db',
+#                     pragmas={
+#                         'journal_mode': 'wal',
+#                     })
 db = SqliteDatabase('sambot.db')
-                    # pragmas={
-                    #     'journal_mode': 'wal',
-                    # })
 
 
 class BaseModel(Model):
