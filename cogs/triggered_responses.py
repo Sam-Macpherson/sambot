@@ -130,33 +130,32 @@ class TriggeredResponseCog(commands.Cog):
             'image/jpeg',
         ]
         async with aiohttp.ClientSession() as session:
-            async with session.head(url) as head:
-                if head.headers.get('Content-Type', '') not in \
+            response, _ = \
+                TriggeredResponseModelInterface.get_or_create(
+                    guild=guild,
+                    trigger=trigger,
+                    defaults={
+                        'type': TriggeredResponseModelInterface.IMAGE,
+                        'image': None
+                    }
+                )
+            async with session.get(url) as resp:
+                if resp.headers.get('Content-Type', '') not in \
                         image_headers:
                     return await context.channel.send(
                         f'Only PNG, JPG images are supported.'
                     )
-                response, _ = \
-                    TriggeredResponseModelInterface.get_or_create(
-                        guild=guild,
-                        trigger=trigger,
-                        defaults={
-                            'type': TriggeredResponseModelInterface.IMAGE,
-                            'image': None
-                        }
+                if resp.status != 200:
+                    return await context.message.channel.send(
+                        f'Could not find image.'
                     )
-                async with session.get(url) as resp:
-                    if resp.status != 200:
-                        return await context.message.channel.send(
-                            f'Could not find image.'
-                        )
-                    image_bytes = await resp.read()
-                    response.image = image_bytes
-                    TriggeredResponseModelInterface.save_instance(response)
-                    data = io.BytesIO(image_bytes)
-                    await context.message.channel.send(
-                        file=discord.File(data, 'image.jpg')
-                    )
+                image_bytes = await resp.read()
+                response.image = image_bytes
+                TriggeredResponseModelInterface.save_instance(response)
+                data = io.BytesIO(image_bytes)
+                await context.message.channel.send(
+                    file=discord.File(data, 'image.jpg')
+                )
 
     @commands.command(name='removeimage')
     @has_permissions(manage_messages=True)
