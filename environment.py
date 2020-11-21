@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from models import base_model
 from models.banned_words import BannedWord
 from models.currencies import Currency, Wallet, CurrencyAmount
-from models.guild import Guild
+from models import Guild, User
 from models.profiles import DiscordProfile, TwitchProfile
 from models.triggered_responses import (
     TriggeredResponse,
@@ -18,7 +18,7 @@ from utilities import truthy
 
 class Environment:
     __instance = None
-    base_tables = [Guild]
+    base_tables = [Guild, User]
     profile_tables = [DiscordProfile, TwitchProfile]
     banned_words_tables = [BannedWord]
     triggered_responses_tables = [
