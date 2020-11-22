@@ -3,7 +3,7 @@ import io
 import string
 import threading
 
-from flask import Flask
+from flask import Flask, render_template
 
 import discord
 from discord.ext import commands
@@ -148,7 +148,7 @@ async def kill(context):
 
 @app.route('/')
 def index():
-    return 'Welcome to the sambot web server!'
+    return render_template('index.html')
 
 
 if Environment.instance().TOKEN is None:
