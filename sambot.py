@@ -1,6 +1,9 @@
+import asyncio
 import io
 import string
-from datetime import datetime, timedelta
+import threading
+
+from flask import Flask
 
 import discord
 from discord.ext import commands
@@ -21,9 +24,11 @@ from utilities.decorators import debuggable
 from utilities.lru_cache import LRUCache
 
 description = '''sambot in Python.'''
+app = Flask(__name__)
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='$',
+                   loop=asyncio.new_event_loop(),
                    description=description,
                    intents=intents,  # Camping is in-tents.
                    help_command=None)
@@ -141,7 +146,14 @@ async def kill(context):
         print(f'{context.message.author} (not owner) tried to kill the bot.')
 
 
+@app.route('/')
+def index():
+    return 'Welcome to the sambot web server!'
+
+
 if Environment.instance().TOKEN is None:
     print('Specify the DISCORD_TOKEN in the .env file.')
 else:
-    bot.run(Environment.instance().TOKEN)
+    # Runs the discord bot in a child thread.
+    bot.loop.create_task(bot.start(Environment.instance().TOKEN))
+    threading.Thread(target=bot.loop.run_forever).start()
