@@ -62,6 +62,7 @@ class Environment:
 
             # Set DEBUG=True in the .env file to enable debug mode.
             self.TOKEN = os.getenv('DISCORD_TOKEN')
+            self.TWITCH_AUTH = os.getenv('TWITCH_AUTH')
             self.DEBUG = truthy(os.getenv('DEBUG'))
             self.DEBUG_CHANNEL_ID = integer_variables['DEBUG_CHANNEL_ID']
             self.OWNER_USER_ID = integer_variables['OWNER_USER_ID']

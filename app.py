@@ -6,6 +6,8 @@ from flask import request, Flask, render_template, Response
 
 import sambot
 
+from environment import Environment
+
 # Create a child thread for the bot to run on.
 sambot.bot.loop.create_task(sambot.run())
 threading.Thread(target=sambot.bot.loop.run_forever).start()
@@ -16,14 +18,14 @@ app = Flask(__name__)
 # Make a request to this URL for tantooni's stream changed topic.
 # https://api.twitch.tv/helix/streams?user_id=48379839
 headers = {
-    'client-id': '',
-    'Authorization': ''
+    'client-id': 'gp762nuuoqcoxypju8c569th9wz7q5',
+    'Authorization': f'Bearer {Environment.instance().TWITCH_AUTH}'
 }
 payload = {
     'hub.callback': 'https://sambot.loca.lt/webhook',
     'hub.mode': 'subscribe',
     'hub.topic': 'https://api.twitch.tv/helix/streams?user_id=48379839',
-    'hub.lease_seconds': 60
+    'hub.lease_seconds': 864000
 }
 
 
@@ -40,11 +42,16 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/webhook', methods=['GET'])
+@app.route('/webhook', methods=['GET', 'POST'])
 def webhook_confirm():
-    challenge = request.form.get('hub.challenge')
-    print(challenge)
-    return Response(challenge, status=200)
+    if request.method == 'GET':
+        challenge = request.args.get('hub.challenge')
+        print(f'Challenge received: {challenge}')
+        return Response(challenge, status=200)
+    else:
+        print('Data received:')
+        print(request.form)
+        return Response(status=200)
 
 
 loop = asyncio.get_event_loop()
