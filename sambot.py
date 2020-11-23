@@ -1,9 +1,7 @@
 import asyncio
 import io
 import string
-import threading
 
-from flask import Flask, render_template
 
 import discord
 from discord.ext import commands
@@ -24,7 +22,7 @@ from utilities.decorators import debuggable
 from utilities.lru_cache import LRUCache
 
 description = '''sambot in Python.'''
-app = Flask(__name__)
+
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='$',
@@ -146,14 +144,17 @@ async def kill(context):
         print(f'{context.message.author} (not owner) tried to kill the bot.')
 
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+async def run():
+    if Environment.instance().TOKEN is None:
+        print('Specify the DISCORD_TOKEN in the .env file.')
+    else:
+        # Runs the discord bot in a child thread.
+        await bot.start(Environment.instance().TOKEN)
 
 
-if Environment.instance().TOKEN is None:
-    print('Specify the DISCORD_TOKEN in the .env file.')
-else:
-    # Runs the discord bot in a child thread.
-    bot.loop.create_task(bot.start(Environment.instance().TOKEN))
-    threading.Thread(target=bot.loop.run_forever).start()
+if __name__ == "__main__":
+    if Environment.instance().TOKEN is None:
+        print('Specify the DISCORD_TOKEN in the .env file.')
+    else:
+        # Runs the discord bot in a child thread.
+        bot.run(Environment.instance().TOKEN)
