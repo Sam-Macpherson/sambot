@@ -145,6 +145,7 @@ async def kill(context):
 
 
 async def run():
+    """Used by the Flask app to run the discord bot in a child thread."""
     if Environment.instance().TOKEN is None:
         print('Specify the DISCORD_TOKEN in the .env file.')
     else:
@@ -152,9 +153,16 @@ async def run():
         await bot.start(Environment.instance().TOKEN)
 
 
-if __name__ == "__main__":
+def main():
+    """Used if the bot is being run without the flask app, i.e. on the main
+    thread.
+    """
     if Environment.instance().TOKEN is None:
         print('Specify the DISCORD_TOKEN in the .env file.')
     else:
-        # Runs the discord bot in a child thread.
+        # Runs the discord bot in the main thread.
         bot.run(Environment.instance().TOKEN)
+
+
+if __name__ == "__main__":
+    main()
