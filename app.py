@@ -51,6 +51,8 @@ def webhook_confirm():
     else:
         print('Data received:')
         print(request.form)
+        print(request.args)
+        print(request.data)
         return Response(status=200)
 
 
