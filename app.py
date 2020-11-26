@@ -2,6 +2,7 @@ import asyncio
 import threading
 
 import aiohttp
+import discord
 from flask import request, Flask, render_template, Response
 
 import sambot
@@ -53,6 +54,43 @@ def webhook_confirm():
         print(request.form)
         print(request.args)
         print(request.data)
+        # Hardcode for Twitch.tv/tantooni
+        # Use the request.data body:
+        """
+        b'{
+        "data":
+        [
+        {"game_id":"459931",
+        "game_name":"Old School RuneScape",
+        "id":"40699668606",
+        "language":"en",
+        "started_at":"2020-11-26T20:49:59Z",
+        "tag_ids":null,
+        "thumbnail_url":"https://static-cdn.jtvnw.net/previews-ttv
+        /live_user_tantooni-{width}x{height}.jpg",
+        "title":"The title | !lights | !lego",
+        "type":"live",
+        "user_id":"48379839",
+        "user_name":"Tantooni",
+        "viewer_count":0
+        }
+        ]
+        }'
+        """
+        # import json
+        # data = json.loads(request.data)
+        # data.get('data')[0].get('game_name'), etc.
+        # channel = sambot.bot.get_channel(523994990402207747)
+        # embed = discord.Embed(title="Tantooni is now live on Twitch, swing by!",
+        #                       url="https://www.twitch.tv/tantooni",
+        #                       color=0x6441a5)
+        # embed.set_author(name="It's stream time",
+        #                  url="https://www.twitch.tv/tantooni",
+        #                  icon_url="https://upload.wikimedia.org/wikipedia/commons/6/6c/Yip_Man.jpg")
+        # embed.set_thumbnail(
+        #     url="https://static-cdn.jtvnw.net/jtv_user_pictures/4a738226-02c8-470d-b252-760eaece3780-profile_image-300x300.png")
+        # embed.set_footer(text='See you there!')
+        # sambot.bot.loop.create_task(channel.send(embed=embed))
         return Response(status=200)
 
 
