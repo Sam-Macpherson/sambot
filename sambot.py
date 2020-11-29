@@ -1,6 +1,7 @@
+import asyncio
 import io
 import string
-from datetime import datetime, timedelta
+
 
 import discord
 from discord.ext import commands
@@ -22,8 +23,10 @@ from utilities.lru_cache import LRUCache
 
 description = '''sambot in Python.'''
 
+
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='$',
+                   loop=asyncio.new_event_loop(),
                    description=description,
                    intents=intents,  # Camping is in-tents.
                    help_command=None)
@@ -141,7 +144,25 @@ async def kill(context):
         print(f'{context.message.author} (not owner) tried to kill the bot.')
 
 
-if Environment.instance().TOKEN is None:
-    print('Specify the DISCORD_TOKEN in the .env file.')
-else:
-    bot.run(Environment.instance().TOKEN)
+async def run():
+    """Used by the Flask app to run the discord bot in a child thread."""
+    if Environment.instance().TOKEN is None:
+        print('Specify the DISCORD_TOKEN in the .env file.')
+    else:
+        # Runs the discord bot in a child thread.
+        await bot.start(Environment.instance().TOKEN)
+
+
+def main():
+    """Used if the bot is being run without the flask app, i.e. on the main
+    thread.
+    """
+    if Environment.instance().TOKEN is None:
+        print('Specify the DISCORD_TOKEN in the .env file.')
+    else:
+        # Runs the discord bot in the main thread.
+        bot.run(Environment.instance().TOKEN)
+
+
+if __name__ == "__main__":
+    main()

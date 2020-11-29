@@ -2,5 +2,6 @@ venv
 .env
 .idea
 __pycache__
+node_modules
 *.db*
 ipman3.jpg
