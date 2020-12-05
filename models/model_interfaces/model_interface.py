@@ -258,9 +258,12 @@ class StreamLiveNotificationModelInterface(ModelInterface):
     @classmethod
     def get_all_for_streamer(cls, streamer_twitch_id: int):
         """Return all the StreamLiveNotification objects for which the streamer
-        matches the given streamer ID.
+        matches the given streamer ID. Only allows a notification at most once
+        per streamer every 2 hours.
         """
+        now = datetime.now()
         return StreamLiveNotification.select().where(
-            StreamLiveNotification.streamer_twitch_id == streamer_twitch_id
+            (StreamLiveNotification.streamer_twitch_id == streamer_twitch_id) &
+            (StreamLiveNotification.last_notified <= now - timedelta(hours=2))
         )
 

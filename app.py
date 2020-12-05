@@ -38,7 +38,8 @@ async def renew_all_subscriptions(startup: bool = False):
         if startup:
             subscriptions = StreamLiveNotificationModelInterface.get_all()
         else:
-            subscriptions = StreamLiveNotificationModelInterface.get_expiring_soon()
+            subscriptions = \
+                StreamLiveNotificationModelInterface.get_expiring_soon()
         for subscription in subscriptions:
             # Renew each subscription.
             payload = {
