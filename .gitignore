@@ -1,3 +1,5 @@
+package-lock.json
+nohup.out
 venv
 .env
 .idea
