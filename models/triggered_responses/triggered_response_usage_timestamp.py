@@ -3,7 +3,6 @@ from datetime import datetime
 from peewee import ForeignKeyField, DateTimeField
 
 from models import BaseModel, User
-from models.profiles import DiscordProfile
 from models.triggered_responses import TriggeredResponse
 
 

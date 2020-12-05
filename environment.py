@@ -13,6 +13,7 @@ from models.triggered_responses import (
     TriggeredResponse,
     TriggeredResponseUsageTimestamp,
 )
+from models.twitch_notifications import StreamLiveNotification
 from utilities import truthy
 
 
@@ -26,13 +27,15 @@ class Environment:
         TriggeredResponseUsageTimestamp,
     ]
     currency_tables = [Currency, Wallet, CurrencyAmount]
+    twitch_tables = [StreamLiveNotification]
 
     database_tables = (
             base_tables +
             profile_tables +
             banned_words_tables +
             triggered_responses_tables +
-            currency_tables
+            currency_tables +
+            twitch_tables
     )
 
     @staticmethod
@@ -62,6 +65,7 @@ class Environment:
 
             # Set DEBUG=True in the .env file to enable debug mode.
             self.TOKEN = os.getenv('DISCORD_TOKEN')
+            self.TWITCH_CLIENT_ID = os.getenv('TWITCH_CLIENT_ID')
             self.TWITCH_AUTH = os.getenv('TWITCH_AUTH')
             self.TWITCH_SECRET = os.getenv('TWITCH_SECRET')
             self.DEBUG = truthy(os.getenv('DEBUG'))

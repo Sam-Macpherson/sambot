@@ -1,12 +1,9 @@
 import uuid
 
 from peewee import *
+from playhouse.sqlite_ext import SqliteExtDatabase
 
-
-db = SqliteDatabase('sambot.db')
-                    # pragmas={
-                    #     'journal_mode': 'wal',
-                    # })
+db = SqliteExtDatabase('sambot.db', timeout=5)
 
 
 class BaseModel(Model):
