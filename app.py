@@ -63,7 +63,7 @@ async def renew_all_subscriptions(startup: bool = False):
                     print(await resp.text())
         if startup:
             asyncio.get_event_loop().stop()
-        await asyncio.sleep(10)
+        await asyncio.sleep(180)  # Renew subscriptions every 3 minutes.
 
 
 @app.route('/')

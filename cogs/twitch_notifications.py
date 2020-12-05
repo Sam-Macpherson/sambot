@@ -77,6 +77,8 @@ class TwitchNotificationsCog(commands.Cog):
                                               f'to notify when that streamer '
                                               f'goes live.')
         channel_id = channel[2:-1]
+        if self.bot.get_channel(channel_id) is None:
+            return await context.channel.send('That\'s not a real channel!')
         # Get the twitch streamer.
         url = f'https://api.twitch.tv/helix/users?login={streamer_name}'
         headers = {
