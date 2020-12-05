@@ -12,6 +12,7 @@ from models.builders import (
     TriggeredResponseBuilder,
     CurrencyBuilder,
 )
+from models.builders.stream_live_notification_builder import StreamLiveNotificationBuilder
 from models.builders.user_builder import UserBuilder
 from models.currencies import Currency, CurrencyAmount
 from models.exceptions import InsufficientFundsError
@@ -20,6 +21,7 @@ from models.triggered_responses import (
     TriggeredResponse,
     TriggeredResponseUsageTimestamp,
 )
+from models.twitch_notifications.stream_live_notification import StreamLiveNotification
 
 
 class ModelInterface:
@@ -231,3 +233,37 @@ class CurrencyModelInterface(ModelInterface):
     @classmethod
     def get_or_none(cls, **kwargs):
         raise NotImplementedError
+
+
+class StreamLiveNotificationModelInterface(ModelInterface):
+    model = StreamLiveNotification
+    builder = StreamLiveNotificationBuilder
+
+    @classmethod
+    def get_expiring_soon(cls):
+        """Return all the StreamLiveNotification objects which are expiring
+        within the next 1 day.
+        """
+        now = datetime.now()
+        subscriptions = StreamLiveNotification.select().where(
+            StreamLiveNotification.expires <= now + timedelta(days=1)
+        )
+        return subscriptions
+
+    @classmethod
+    def get_all(cls):
+        """Return all StreamLiveNotification objects."""
+        return StreamLiveNotification.select()
+
+    @classmethod
+    def get_all_for_streamer(cls, streamer_twitch_id: int):
+        """Return all the StreamLiveNotification objects for which the streamer
+        matches the given streamer ID. Only allows a notification at most once
+        per streamer every 2 hours.
+        """
+        now = datetime.now()
+        return StreamLiveNotification.select().where(
+            (StreamLiveNotification.streamer_twitch_id == streamer_twitch_id) &
+            (StreamLiveNotification.last_notified <= now - timedelta(hours=2))
+        )
+

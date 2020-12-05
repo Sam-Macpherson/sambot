@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import json
 import threading
+from datetime import datetime, timedelta
 
 import aiohttp
 import discord
@@ -13,38 +14,57 @@ import sambot
 from environment import Environment
 
 # Create a child thread for the bot to run on.
+from models.model_interfaces import StreamLiveNotificationModelInterface
+
 sambot.bot.loop.create_task(sambot.run())
 threading.Thread(target=sambot.bot.loop.run_forever).start()
 
 # Create the Flask app
 app = Flask(__name__)
 
-# Tantooni's twitch id: 48379839
-# artsypig's twitch id: 43490535
-headers = {
-    'client-id': 'gp762nuuoqcoxypju8c569th9wz7q5',
-    'Authorization': f'Bearer {Environment.instance().TWITCH_AUTH}'
-}
-tantooni_payload = {
-    'hub.callback': 'https://sambot.loca.lt/webhook',
-    'hub.mode': 'subscribe',
-    'hub.topic': 'https://api.twitch.tv/helix/streams?user_id=48379839',
-    'hub.lease_seconds': 864000,
-    'hub.secret': Environment.instance().TWITCH_SECRET
-}
-
-
-async def subscribe():
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url='https://api.twitch.tv/helix/webhooks/hub',
-                                headers=headers,
-                                data=tantooni_payload) as resp:
-            print(await resp.text())
-
 
 async def send_notification(channel, embed):
     await channel.send('Hey @everyone, it\'s stream time!')
     await channel.send(embed=embed)
+
+
+async def renew_all_subscriptions(startup: bool = False):
+    headers = {
+        'client-id': Environment.instance().TWITCH_CLIENT_ID,
+        'Authorization': f'Bearer {Environment.instance().TWITCH_AUTH}'
+    }
+    ten_days = 864000  # 60 * 60 * 24 * 10
+    while True:
+        if startup:
+            subscriptions = StreamLiveNotificationModelInterface.get_all()
+        else:
+            subscriptions = \
+                StreamLiveNotificationModelInterface.get_expiring_soon()
+        for subscription in subscriptions:
+            # Renew each subscription.
+            payload = {
+                'hub.callback': 'https://sambot.loca.lt/webhook',
+                'hub.mode': 'subscribe',
+                'hub.topic': f'https://api.twitch.tv/helix/streams?user_id='
+                             f'{subscription.streamer_twitch_id}',
+                'hub.lease_seconds': ten_days,
+                'hub.secret': Environment.instance().TWITCH_SECRET
+            }
+            now = datetime.now()
+            subscription.subscription_length = ten_days
+            subscription.created = now
+            subscription.expires = now + timedelta(
+                seconds=subscription.subscription_length)
+            StreamLiveNotificationModelInterface.save_instance(subscription)
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                        url='https://api.twitch.tv/helix/webhooks/hub',
+                        headers=headers,
+                        data=payload) as resp:
+                    print(await resp.text())
+        if startup:
+            asyncio.get_event_loop().stop()
+        await asyncio.sleep(3600)  # Renew subscriptions every hour.
 
 
 @app.route('/')
@@ -56,7 +76,6 @@ def index():
 def webhook_confirm():
     if request.method == 'GET':
         challenge = request.args.get('hub.challenge')
-        print(f'Challenge received: {challenge}')
         return Response(challenge, status=200)
     else:
         received_signature = request.headers.get('X-Hub-Signature')
@@ -73,27 +92,43 @@ def webhook_confirm():
         if not data or data[0].get('type') != 'live':
             return Response(status=200)
         data = data[0]
-        data.get('game_name')
-        channel = sambot.bot.get_channel(523994990402207747)
-        image_url = data.get('thumbnail_url').replace(
-            '{width}', '320', 1
-        ).replace('{height}', '180', 1)
-        embed = discord.Embed(title=data.get('title'),
-                              url=f'https://www.twitch.tv/'
-                                  f'{data.get("user_name")}',
-                              color=0x6441a5)
-        embed.set_author(name="It's stream time",
-                         url=f'https://www.twitch.tv/{data.get("user_name")}',
-                         icon_url="https://upload.wikimedia.org/wikipedia/commons/6/6c/Yip_Man.jpg")
-        embed.set_thumbnail(
-            url="https://static-cdn.jtvnw.net/jtv_user_pictures/4a738226-02c8-470d-b252-760eaece3780-profile_image-300x300.png")
-        embed.add_field(name='Game', value=data.get('game_name'), inline=True)
-        embed.add_field(name='Viewers', value=data.get('viewer_count'), inline=True)
-        embed.set_footer(text='See you there!')
-        embed.set_image(url=image_url)
-        sambot.bot.loop.create_task(send_notification(channel, embed))
+        # Get the StreamLiveNotification objects for this streamer.
+        notifications = \
+            StreamLiveNotificationModelInterface.get_all_for_streamer(
+                streamer_twitch_id=int(data['user_id'])
+            )
+        for notification in notifications:
+            channel = sambot.bot.get_channel(notification.notify_channel)
+            image_url = data.get('thumbnail_url').replace(
+                '{width}', '320', 1
+            ).replace('{height}', '180', 1)
+            embed = discord.Embed(title=data.get('title'),
+                                  url=f'https://www.twitch.tv/'
+                                      f'{data.get("user_name")}',
+                                  color=0x6441a5)
+            embed.set_author(
+                name=f'{data.get("user_name")} just went live!',
+                url=f'https://www.twitch.tv/{data.get("user_name")}',
+                icon_url="https://upload.wikimedia.org/wikipedia/"
+                         "commons/6/6c/Yip_Man.jpg")
+            embed.set_thumbnail(url=notification.profile_image_url)
+            embed.add_field(name='Game',
+                            value=data.get('game_name'),
+                            inline=True)
+            embed.add_field(name='Viewers',
+                            value=data.get('viewer_count'),
+                            inline=True)
+            embed.set_footer(text='See you there!')
+            embed.set_image(url=image_url)
+            sambot.bot.loop.create_task(send_notification(channel, embed))
+            notification.last_notified = datetime.now()
+            StreamLiveNotificationModelInterface.save_instance(notification)
         return Response(status=200)
 
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(subscribe())
+startup_loop = asyncio.new_event_loop()
+startup_loop.create_task(renew_all_subscriptions(startup=True))
+renew_loop = asyncio.new_event_loop()
+renew_loop.create_task(renew_all_subscriptions())
+threading.Thread(target=renew_loop.run_forever).start()
+threading.Thread(target=startup_loop.run_forever).start()

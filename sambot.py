@@ -12,6 +12,7 @@ from cogs import (
     TriggeredResponseCog,
     CurrenciesCog,
 )
+from cogs.twitch_notifications import TwitchNotificationsCog
 from environment import Environment
 from models.model_interfaces import (
     BannedWordModelInterface,
@@ -43,6 +44,7 @@ async def on_ready():
     bot.add_cog(TriggeredResponseCog(bot))
     bot.add_cog(BannedWordsCog(bot))
     bot.add_cog(CurrenciesCog(bot))
+    bot.add_cog(TwitchNotificationsCog(bot))
     Environment.instance().BOT_COMMANDS = [
         command.name for command in bot.commands
     ]

@@ -3,4 +3,5 @@ from models.model_interfaces.model_interface import (
     GuildModelInterface,
     UserModelInterface,
     TriggeredResponseModelInterface,
+    StreamLiveNotificationModelInterface
 )
