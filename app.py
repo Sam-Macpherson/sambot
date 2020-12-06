@@ -118,7 +118,7 @@ def webhook_confirm():
             embed.add_field(name='Viewers',
                             value=data.get('viewer_count'),
                             inline=True)
-            embed.set_footer(text='See you there!')
+            embed.set_footer(text=notification.footer)
             embed.set_image(url=image_url)
             sambot.bot.loop.create_task(send_notification(channel, embed))
             notification.last_notified = datetime.now()

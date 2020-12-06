@@ -9,6 +9,7 @@ class StreamLiveNotification(BaseModelWithUUID):
     """A model to represent a webhook subscription which will send notifications
     to a channel in discord when a streamer goes live.
     """
+    FOOTER_MAX_LENGTH = 128
     streamer_display_name = CharField(help_text='The streamer\'s display name.')
     streamer_twitch_id = IntegerField(help_text='The streamer\'s unique twitch'
                                                 'ID.')
@@ -35,4 +36,9 @@ class StreamLiveNotification(BaseModelWithUUID):
     subscription_length = IntegerField(
         default=0,
         help_text='The number of seconds that this subscription lasts for.'
+    )
+    footer = CharField(
+        max_length=FOOTER_MAX_LENGTH,
+        default='See you there!',
+        help_text='The footer text of the stream notification.'
     )
