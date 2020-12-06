@@ -3,7 +3,7 @@ import uuid
 from peewee import *
 from playhouse.sqlite_ext import SqliteExtDatabase
 
-db = SqliteExtDatabase('sambot.db', timeout=5)
+db = SqliteExtDatabase('sambot.db', timeout=0)
 
 
 class BaseModel(Model):
