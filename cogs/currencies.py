@@ -3,10 +3,11 @@ from discord.ext import commands
 from discord.ext.commands import has_permissions
 
 from models.exceptions import InsufficientFundsError
-from models.model_interfaces import UserModelInterface, GuildModelInterface
-from models.model_interfaces.model_interface import (
-    CurrencyModelInterface,
+from models.model_interfaces import (
+    UserModelInterface,
+    GuildModelInterface,
     DiscordProfileModelInterface,
+    CurrencyModelInterface,
 )
 
 
