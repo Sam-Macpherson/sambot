@@ -16,9 +16,10 @@ from cogs.twitch_notifications import TwitchNotificationsCog
 from environment import Environment
 from models.model_interfaces import (
     BannedWordModelInterface,
-    GuildModelInterface, TriggeredResponseModelInterface,
+    GuildModelInterface,
+    DiscordProfileModelInterface,
+    TriggeredResponseModelInterface,
 )
-from models.model_interfaces.model_interface import DiscordProfileModelInterface
 from utilities.decorators import debuggable
 from utilities.lru_cache import LRUCache
 
