@@ -238,6 +238,7 @@ class CurrencyModelInterface(ModelInterface):
 class StreamLiveNotificationModelInterface(ModelInterface):
     model = StreamLiveNotification
     builder = StreamLiveNotificationBuilder
+    FOOTER_MAX_LENGTH = StreamLiveNotification.FOOTER_MAX_LENGTH
 
     @classmethod
     def get_expiring_soon(cls):

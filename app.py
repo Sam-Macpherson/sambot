@@ -14,6 +14,7 @@ import sambot
 from environment import Environment
 
 # Create a child thread for the bot to run on.
+from models import base_model, BaseModel
 from models.model_interfaces import StreamLiveNotificationModelInterface
 
 sambot.bot.loop.create_task(sambot.run())
@@ -40,7 +41,24 @@ async def renew_all_subscriptions(startup: bool = False):
         else:
             subscriptions = \
                 StreamLiveNotificationModelInterface.get_expiring_soon()
+        BaseModel._meta.database.connect()
         for subscription in subscriptions:
+            # Update the subscription's profile picture URL.
+            url = f'https://api.twitch.tv/helix/users?id=' \
+                  f'{subscription.streamer_twitch_id}'
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, headers=headers) as resp:
+                    if resp.status != 200:
+                        print(f'Could not reach Twitch backend when attempting '
+                              f'to update the profile picture for the streamer '
+                              f'{subscription.streamer_display_name}')
+                        return
+                    data = await resp.json()
+                    if len(data['data']) == 0:
+                        print(f'Could not find the Twitch streamer: '
+                              f'{subscription.streamer_display_name}')
+                    data = data['data'][0]
+                    subscription.profile_image_url = data['profile_image_url']
             # Renew each subscription.
             payload = {
                 'hub.callback': 'https://sambot.loca.lt/webhook',
@@ -62,6 +80,8 @@ async def renew_all_subscriptions(startup: bool = False):
                         headers=headers,
                         data=payload) as resp:
                     print(await resp.text())
+        # Explicitly close database connection.
+        BaseModel._meta.database.close()
         if startup:
             asyncio.get_event_loop().stop()
         await asyncio.sleep(3600)  # Renew subscriptions every hour.
@@ -118,7 +138,7 @@ def webhook_confirm():
             embed.add_field(name='Viewers',
                             value=data.get('viewer_count'),
                             inline=True)
-            embed.set_footer(text='See you there!')
+            embed.set_footer(text=notification.footer)
             embed.set_image(url=image_url)
             sambot.bot.loop.create_task(send_notification(channel, embed))
             notification.last_notified = datetime.now()

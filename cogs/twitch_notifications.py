@@ -17,7 +17,8 @@ class TwitchNotificationsCog(commands.Cog):
     async def create_twitch_stream_notification(self,
                                                 context,
                                                 streamer_name: str,
-                                                channel: str):
+                                                channel: str,
+                                                footer: str = None):
         if not channel.startswith('<#'):
             return await context.channel.send(f'You need to mention a channel '
                                               f'to notify when that streamer '
@@ -47,14 +48,25 @@ class TwitchNotificationsCog(commands.Cog):
                 twitch_display_name = data['display_name']
                 twitch_id = data['id']
                 twitch_profile_picture_url = data['profile_image_url']
+                defaults = {
+                    'streamer_display_name': twitch_display_name,
+                    'profile_image_url': twitch_profile_picture_url,
+                }
+                max_footer_length = \
+                    StreamLiveNotificationModelInterface.FOOTER_MAX_LENGTH
+                if footer is not None:
+                    if len(footer) > max_footer_length:
+                        return await context.message.channel.send(
+                            f'Maximum footer text length is '
+                            f'{max_footer_length} characters, you gave one '
+                            f'that is {len(footer)}. Try again.'
+                        )
+                    defaults['footer'] = footer
                 notification, created = \
                     StreamLiveNotificationModelInterface.get_or_create(
                         streamer_twitch_id=twitch_id,
                         notify_channel=channel_id,
-                        defaults={
-                            'streamer_display_name': twitch_display_name,
-                            'profile_image_url': twitch_profile_picture_url,
-                        }
+                        defaults=defaults
                     )
                 if not created:
                     return await context.message.channel.send(
