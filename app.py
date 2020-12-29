@@ -1,4 +1,5 @@
 import asyncio
+import random
 import hashlib
 import hmac
 import json
@@ -25,8 +26,7 @@ app = Flask(__name__)
 
 
 async def send_notification(channel, embed):
-    await channel.send('Hey @everyone, it\'s stream time!')
-    await channel.send(embed=embed)
+    await channel.send('Hey @everyone, it\'s stream time!', embed=embed)
 
 
 async def renew_all_subscriptions(startup: bool = False):
@@ -121,7 +121,7 @@ def webhook_confirm():
             channel = sambot.bot.get_channel(notification.notify_channel)
             image_url = data.get('thumbnail_url').replace(
                 '{width}', '320', 1
-            ).replace('{height}', '180', 1)
+            ).replace('{height}', '180', 1) + f'?r={random.randint(1, 99999)}'
             embed = discord.Embed(title=data.get('title'),
                                   url=f'https://www.twitch.tv/'
                                       f'{data.get("user_name")}',
