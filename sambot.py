@@ -130,6 +130,15 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
+@bot.event
+async def on_member_join(member):
+    # This is the ID of Tantooni's "Member" roll.
+    role = discord.utils.get(member.guild.roles, id=698352275990511676)
+    if role is not None:
+        await member.add_roles(role)
+    # Otherwise, for now do nothing.
+
+
 @bot.command()
 @has_permissions(manage_messages=True)
 async def test(context):
