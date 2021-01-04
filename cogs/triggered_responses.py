@@ -128,6 +128,7 @@ class TriggeredResponseCog(commands.Cog):
             'image/png',
             'image/jpg',
             'image/jpeg',
+            'image/webp',
         ]
         async with aiohttp.ClientSession() as session:
             response, _ = \
