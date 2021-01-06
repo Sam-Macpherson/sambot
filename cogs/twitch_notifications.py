@@ -8,7 +8,7 @@ from environment import Environment
 from models.model_interfaces import StreamLiveNotificationModelInterface
 
 
-class TwitchNotificationsCog(commands.Cog):
+class TwitchNotificationsCog(commands.Cog, name='cogs.twitch_notifications_cog'):
     def __init__(self, bot):
         self.bot = bot
 

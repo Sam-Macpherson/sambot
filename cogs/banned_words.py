@@ -7,7 +7,7 @@ from models.model_interfaces import (
 )
 
 
-class BannedWordsCog(commands.Cog):
+class BannedWordsCog(commands.Cog, name='cogs.banned_words_cog'):
     def __init__(self, bot):
         self.bot = bot
 

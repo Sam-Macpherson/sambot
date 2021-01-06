@@ -11,7 +11,7 @@ from models.model_interfaces import (
 )
 
 
-class CurrenciesCog(commands.Cog):
+class CurrenciesCog(commands.Cog, name='cogs.currencies_cog'):
     def __init__(self, bot):
         self.bot = bot
 

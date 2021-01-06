@@ -11,7 +11,7 @@ from models.model_interfaces import (
 )
 
 
-class TriggeredResponseCog(commands.Cog):
+class TriggeredResponseCog(commands.Cog, name='cogs.triggered_response_cog'):
     """A cog to logically group all commands related to
     Triggered Responses.
     """

@@ -42,10 +42,21 @@ async def on_ready():
     print(f'Debug mode is '
           f'{"ENABLED" if Environment.instance().DEBUG else "DISABLED"}.')
     print('=========')
-    bot.add_cog(TriggeredResponseCog(bot))
-    bot.add_cog(BannedWordsCog(bot))
-    bot.add_cog(CurrenciesCog(bot))
-    bot.add_cog(TwitchNotificationsCog(bot))
+    cog_names = [
+        'cogs.triggered_response_cog',
+        'cogs.banned_words_cog',
+        'cogs.currencies_cog',
+        'cogs.twitch_notifications_cog'
+    ]
+    cogs = [
+        TriggeredResponseCog(bot),
+        BannedWordsCog(bot),
+        CurrenciesCog(bot),
+        TwitchNotificationsCog(bot)
+    ]
+    for cog_name, cog in zip(cog_names, cogs):
+        if bot.get_cog(cog_name) is None:
+            bot.add_cog(cog)
     Environment.instance().BOT_COMMANDS = [
         command.name for command in bot.commands
     ]
