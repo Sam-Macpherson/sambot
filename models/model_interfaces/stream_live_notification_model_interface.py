@@ -14,11 +14,11 @@ class StreamLiveNotificationModelInterface(ModelInterface):
     @classmethod
     def get_expiring_soon(cls):
         """Return all the StreamLiveNotification objects which are expiring
-        within the next 1 day.
+        within the next 30 minutes.
         """
         now = datetime.now()
         subscriptions = StreamLiveNotification.select().where(
-            StreamLiveNotification.expires <= now + timedelta(days=1)
+            StreamLiveNotification.expires <= now + timedelta(minutes=30)
         )
         return subscriptions
 

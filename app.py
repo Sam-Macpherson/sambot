@@ -34,14 +34,18 @@ async def renew_all_subscriptions(startup: bool = False):
         'client-id': Environment.instance().TWITCH_CLIENT_ID,
         'Authorization': f'Bearer {Environment.instance().TWITCH_AUTH}'
     }
-    ten_days = 864000  # 60 * 60 * 24 * 10
+    one_day = 60 * 60 * 24
+    old_uuid = 'x'
+
     while True:
-        if startup:
+        with open('/home/pi/sambot_uuid', 'r') as uuid_file:
+            new_uuid = uuid_file.readline().rstrip('\n')
+        
+        if startup or old_uuid != new_uuid:
             subscriptions = StreamLiveNotificationModelInterface.get_all()
         else:
             subscriptions = \
                 StreamLiveNotificationModelInterface.get_expiring_soon()
-        BaseModel._meta.database.connect()
         for subscription in subscriptions:
             # Update the subscription's profile picture URL.
             url = f'https://api.twitch.tv/helix/users?id=' \
@@ -61,15 +65,15 @@ async def renew_all_subscriptions(startup: bool = False):
                     subscription.profile_image_url = data['profile_image_url']
             # Renew each subscription.
             payload = {
-                'hub.callback': 'https://sambot.loca.lt/webhook',
+                'hub.callback': f'https://{new_uuid}.loca.lt/webhook',
                 'hub.mode': 'subscribe',
                 'hub.topic': f'https://api.twitch.tv/helix/streams?user_id='
                              f'{subscription.streamer_twitch_id}',
-                'hub.lease_seconds': ten_days,
+                'hub.lease_seconds': one_day,
                 'hub.secret': Environment.instance().TWITCH_SECRET
             }
             now = datetime.now()
-            subscription.subscription_length = ten_days
+            subscription.subscription_length = one_day
             subscription.created = now
             subscription.expires = now + timedelta(
                 seconds=subscription.subscription_length)
@@ -80,11 +84,9 @@ async def renew_all_subscriptions(startup: bool = False):
                         headers=headers,
                         data=payload) as resp:
                     print(await resp.text())
-        # Explicitly close database connection.
-        BaseModel._meta.database.close()
-        if startup:
-            asyncio.get_event_loop().stop()
-        await asyncio.sleep(3600)  # Renew subscriptions every hour.
+        old_uuid = new_uuid
+        startup = False
+        await asyncio.sleep(60)  # Renew subscriptions every minute.
 
 
 @app.route('/')
@@ -148,7 +150,7 @@ def webhook_confirm():
 
 startup_loop = asyncio.new_event_loop()
 startup_loop.create_task(renew_all_subscriptions(startup=True))
-renew_loop = asyncio.new_event_loop()
-renew_loop.create_task(renew_all_subscriptions())
-threading.Thread(target=renew_loop.run_forever).start()
+#renew_loop = asyncio.new_event_loop()
+#renew_loop.create_task(renew_all_subscriptions())
+#threading.Thread(target=renew_loop.run_forever).start()
 threading.Thread(target=startup_loop.run_forever).start()
